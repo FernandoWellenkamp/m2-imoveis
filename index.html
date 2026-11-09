@@ -8,7 +8,7 @@
 <script src="data.js"></script>
 <script>
 (() => {
-  const KEY = "m2demo_v1";
+  const KEY = "m2demo_v2";
   const fresh = () => JSON.parse(JSON.stringify(window.M2_SEED));
   let st = null; try { st = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
   if (!st || !st.imoveis) st = fresh();
@@ -411,6 +411,64 @@ a.btn.pri{color:var(--accent-ink)}
   .swa{padding:12px}
 }
 
+/* ---------- Portal do corretor ---------- */
+header.top,nav.bnav{display:none!important}
+.portalmode main.gut{padding:0}
+.portalmode main>.wrap{max-width:none}
+.portal{display:grid;grid-template-columns:248px 1fr;min-height:100vh}
+.pside{background:#0f1c3f;color:#c9d4ec;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto;padding:18px 12px calc(18px + env(safe-area-inset-bottom,0px))}
+.plogo{display:block;padding:4px 10px 18px}
+.plogo img{height:46px;width:auto}
+.plogo .logo-l{display:none}.plogo .logo-d{display:block}
+.pnav{display:grid;gap:16px}
+.pgrp{display:grid;gap:2px}
+.pgrp>span{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:#7f8fb3;font-weight:700;padding:0 10px 4px}
+.pgrp a,.pgrp button{display:flex;align-items:center;gap:10px;color:#d6def0;text-decoration:none;padding:9px 10px;border-radius:8px;font-weight:600;font-size:14px;background:none;border:0;cursor:pointer;text-align:left;font-family:inherit}
+.pgrp a svg,.pgrp button svg{width:19px;height:19px;flex:none;opacity:.85}
+.pgrp a:hover,.pgrp button:hover{background:rgba(255,255,255,.07);color:#fff}
+.pgrp a[aria-current="page"]{background:#1d3b85;color:#fff}
+.pgrp a[aria-current="page"] svg{opacity:1}
+.pbadge{margin-left:auto;background:var(--gold);color:#1a1405;border-radius:99px;font-size:11px;font-weight:800;padding:1px 8px}
+.pmain{min-width:0;display:flex;flex-direction:column}
+.ptop{position:sticky;top:0;z-index:15;display:flex;align-items:center;gap:12px;background:var(--surface);border-bottom:1px solid var(--line);padding:12px max(20px,env(safe-area-inset-right,0px)) 12px 24px}
+.ptitle{font-family:var(--f-display);font-weight:700;font-size:15px;color:var(--ink);margin-right:auto;display:grid;line-height:1.2}
+.pkicker{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:800}
+.puser{display:grid;text-align:right;line-height:1.2}
+.puser small{color:var(--muted);font-size:12px}
+.pburger{display:none;background:none;border:0;color:var(--ink);cursor:pointer;padding:4px}
+.pwarn{background:var(--warn-bg);color:var(--ink);padding:10px 24px;font-size:13px}
+.pwarn a{color:var(--accent);font-weight:600}
+.pcontent{padding:24px max(24px,env(safe-area-inset-right,0px)) 64px 24px;max-width:1280px;width:100%}
+.pscrim{display:none}
+.msgs{display:grid;gap:10px}
+.msg{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px;display:grid;gap:6px}
+.msg.unread{border-left:4px solid var(--accent)}
+.msg.unread b{color:var(--accent)}
+.msgh{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.msgt{margin-left:auto;color:var(--muted);font-size:12px}
+.msgc{color:var(--muted);font-size:13px;user-select:all}
+.msgx{margin:0;white-space:pre-wrap}
+.msga{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.slogin{display:grid;place-items:center;padding-block:56px 80px}
+.plogin{width:100%;max-width:400px;text-align:left}
+.plogin h1{margin:0;color:var(--accent);font-size:26px}
+.plogin p{margin:0;color:var(--muted)}
+.plogin label{display:grid;gap:4px;font-size:12px;font-weight:700;color:var(--muted)}
+.plock{width:56px;height:56px;border-radius:14px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
+.phint{font-size:13px;background:var(--sunk);padding:10px 12px;border-radius:8px}
+@media (max-width:860px){
+  .portal{grid-template-columns:1fr}
+  .pside{position:fixed;left:0;top:0;bottom:0;width:min(280px,84vw);z-index:60;transform:translateX(-100%);transition:transform .2s;padding-top:calc(18px + env(safe-area-inset-top,0px))}
+  .pside.open{transform:none}
+  .menu-open .pscrim{display:block}
+  .pscrim{position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:55}
+  .pburger{display:block}
+  .ptop{padding:10px 16px;top:env(safe-area-inset-top,0px)}
+  .pcontent{padding:16px max(16px,env(safe-area-inset-right,0px)) 48px max(16px,env(safe-area-inset-left,0px))}
+  .pwarn{padding:10px 16px}
+  .puser small{display:none}
+}
+
 .demobar{background:var(--warn-bg);color:var(--ink);font-size:13px;padding-block:8px}
 .demobar .wrap{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 /* ---------- Celular ---------- */
@@ -725,7 +783,7 @@ const SCHEMAS = {
 
 /* ---------- State ---------- */
 const S = { db:null, assets:null, user:null, canWrite:true, internal:true,
-  data:{imoveis:[],proprietarios:[],contratos:[],leads:[],visitas:[]}, loaded:{}, cfg:{},
+  data:{imoveis:[],proprietarios:[],contratos:[],leads:[],visitas:[],mensagens:[],captacoes:[],fichas:[],usuarios:[]}, loaded:{}, cfg:{},
   f:{q:"",fin:"",st:"",tipo:"",cat:"",lot:""}, v:{fin:"",tipo:"",bairro:""}, ready:false };
 const byId = (col, id) => S.data[col].find(d => d.id === id);
 const imLabel = im => im ? `${im.codigo || ""} · ${im.titulo || ""}` : "—";
@@ -739,9 +797,22 @@ const VIEWS = [
   {id:"locacoes", l:"Locações", int:1},
   {id:"interessados", l:"Interessados", int:1},
   {id:"negocios", l:"Visitas e negócios", int:1},
+  {id:"mensagens", l:"Mensagens", int:1},
+  {id:"captacao", l:"Captação", int:1},
+  {id:"fichas", l:"Fichas", int:1},
+  {id:"cadastro", l:"Cadastro interno", int:1},
   {id:"vitrine", l:"Site"},
+  {id:"acesso", l:"Área administrativa"},
 ];
-function curView(){ let h = location.hash.slice(1); if (h.startsWith("vitrine") || h.startsWith("imovel-")) h = "vitrine"; const ok = VIEWS.filter(v => S.internal || !v.int).map(v=>v.id); return ok.includes(h) ? h : ok[0]; }
+function curView(){
+  let h = location.hash.slice(1);
+  if (!h || h.startsWith("vitrine") || h.startsWith("imovel-")) return "vitrine";
+  const v = VIEWS.find(x => x.id === h);
+  if (!v) return "vitrine";
+  if (v.int && !(S.internal && S.sess)) return "acesso";
+  if (h === "acesso" && S.internal && S.sess) return "painel";
+  return h;
+}
 const ICON = {
   painel:'<path d="M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z"/>',
   imoveis:'<path d="M3 11l9-7 9 7v10h-6v-6H9v6H3z"/>',
@@ -763,9 +834,11 @@ function render(){
   renderNav();
   const v = curView();
   const el = $("#view");
-  const fn = {painel:vPainel, imoveis:vImoveis, proprietarios:vProp, locacoes:vLoc, interessados:vLeads, negocios:vNeg, vitrine:SITE.view}[v];
-  document.body.classList.toggle("sitemode", v === "vitrine");
-  el.innerHTML = fn();
+  const fn = {painel:vPainel, imoveis:vImoveis, proprietarios:vProp, locacoes:vLoc, interessados:vLeads, negocios:vNeg, mensagens:vMensagens, captacao:vCaptacao, fichas:vFichas, cadastro:vCadastro}[v];
+  const site = v === "vitrine" || v === "acesso";
+  document.body.classList.toggle("sitemode", site);
+  document.body.classList.toggle("portalmode", !site);
+  el.innerHTML = v === "vitrine" ? SITE.view() : v === "acesso" ? SITE.page(vAcesso()) : portalLayout(v, fn());
   el.querySelectorAll(".tbl table").forEach(t => { const hs = [...t.querySelectorAll("th")].map(x => x.textContent); t.querySelectorAll("tbody tr").forEach(r => [...r.children].forEach((td, k) => td.dataset.label = hs[k] || "")); });
   const active = document.activeElement?.id;
   if (active && $("#"+active)) {}
@@ -1033,8 +1106,14 @@ function vLoc(){
 /* ---------- Interessados ---------- */
 function etPill(e){ const m={"Novo":"info","Em contato":"","Visita agendada":"warn","Proposta":"warn","Fechado":"ok","Perdido":"bad"}; return `<span class="pill ${m[e]||""}">${esc(e||"Novo")}</span>`; }
 function vLeads(){
-  const L = [...S.data.leads].sort((a,b)=>(b.criadoEm||"").localeCompare(a.criadoEm||""));
-  return `<div class="head"><div><h1>Interessados</h1><p>${L.length} contatos · ${L.filter(l=>!["Fechado","Perdido"].includes(l.etapa)).length} em andamento</p></div>${addBtn("leads","Interessado")}</div>
+  S.lf = S.lf || {q:"", et:"", or:""};
+  const lf = S.lf, qq = norm(lf.q);
+  const L = [...S.data.leads].sort((a,b)=>(b.criadoEm||"").localeCompare(a.criadoEm||""))
+    .filter(l => (!lf.et || (l.etapa||"Novo") === lf.et) && (!lf.or || l.origem === lf.or) && (!qq || norm([l.nome,l.telefone,l.email,l.bairros,l.corretor,byId("imoveis",l.imovelId)?.codigo].join(" ")).includes(qq)));
+  return `<div class="head"><div><h1>Leads</h1><p>${S.data.leads.length} contatos · ${S.data.leads.filter(l=>!["Fechado","Perdido"].includes(l.etapa)).length} em andamento · ${L.length} exibidos</p></div>${addBtn("leads","Lead")}</div>
+  <div class="filters"><input type="search" id="lq" placeholder="Buscar por nome, telefone, bairro ou código do imóvel" value="${esc(lf.q)}">
+    <select id="let"><option value="">Todas as etapas</option>${ETAPAS.map(x=>`<option ${lf.et===x?"selected":""}>${x}</option>`).join("")}</select>
+    <select id="lor"><option value="">Todas as origens</option>${ORIGENS.map(x=>`<option ${lf.or===x?"selected":""}>${x}</option>`).join("")}</select></div>
   ${!L.length ? emptyBox("Nenhum interessado ainda", "Registre quem procurou a M2 por WhatsApp, Instagram, portais ou plantão, e o que essa pessoa quer.", "leads", "Interessado") :
   `<div class="tbl"><table><thead><tr><th>Nome</th><th>Procura</th><th>Orçamento</th><th>Imóvel</th><th>Origem</th><th>Corretor</th><th>Etapa</th></tr></thead><tbody>
   ${L.map(l => `<tr data-open="leads" data-id="${l.id}"><td><b>${esc(l.nome)}</b><small>${esc(l.telefone||"")}</small></td><td>${esc(l.interesse||"—")}<small>${esc([l.tipoDesejado,l.bairros].filter(Boolean).join(" · "))}</small></td><td class="num">${money(l.orcamento)}</td><td>${esc(byId("imoveis",l.imovelId)?.codigo||"—")}</td><td>${esc(l.origem||"—")}</td><td>${esc(l.corretor||"—")}</td><td>${etPill(l.etapa)}</td></tr>`).join("")}
@@ -1098,6 +1177,7 @@ const SITE = (() => {
     pin:'<path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7zm0 4.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/>',
     chat:'<path d="M12 3C6.5 3 2 6.9 2 11.7c0 2.5 1.2 4.7 3.2 6.3L4 22l4.6-2.3c1 .3 2.2.5 3.4.5 5.5 0 10-3.9 10-8.6S17.5 3 12 3z"/>',
     menu:'<path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/>',
+    lock:'<path d="M7 10V7a5 5 0 0 1 10 0v3h2v12H5V10zm2 0h6V7a3 3 0 0 0-6 0z"/>',
     share:'<path d="M18 16a3 3 0 0 0-2.4 1.2l-6.7-3.4a3 3 0 0 0 0-1.6l6.7-3.4A3 3 0 1 0 15 7l-6.7 3.4a3 3 0 1 0 0 3.2L15 17a3 3 0 1 0 3-1z"/>',
   };
   const ic = (k, s = 18) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${I[k]}</svg>`;
@@ -1118,7 +1198,7 @@ const SITE = (() => {
         <a href="#vitrine-comprar">Comprar</a><a href="#vitrine-alugar">Alugar</a><a href="#vitrine-lotes">Loteamentos</a>
         <a href="#vitrine-anunciar">Anunciar imóvel</a><a href="#vitrine-sobre">Sobre</a><a href="#vitrine-contato">Contato</a>
         <a href="#vitrine-favoritos" class="sfavlink">${ic("heart",16)} Favoritos <span class="sbadge">${n}</span></a>
-        ${S.internal ? `<a href="#painel" class="sbtn sbtn-dark">Área do corretor</a>` : ""}
+        <a href="#${S.sess && S.internal ? "painel" : "acesso"}" class="sbtn sbtn-dark">${ic("lock",15)} Área administrativa</a>
       </nav></div></header>`;
   }
   function footer(){
@@ -1278,8 +1358,9 @@ const SITE = (() => {
     else if (h === "vitrine-contato") body = contato();
     else if (h === "vitrine-favoritos") body = favoritos();
     else body = home();
-    return `<div class="site">${header()}<main class="smainc">${body}</main>${footer()}</div>`;
+    return page(body);
   }
+  function page(body){ return `<div class="site">${header()}<main class="smainc">${body}</main>${footer()}</div>`; }
 
   /* eventos do site */
   function setFromForm(){ const g = id => document.getElementById(id); if (g("s_tipo")) S.sf.tipo = g("s_tipo").value; if (g("s_bairro")) S.sf.bairro = g("s_bairro").value; if (g("s_pmax")) S.sf.pmax = g("s_pmax").value; if (g("s_q")) S.sf.q = g("s_q").value; }
@@ -1317,6 +1398,9 @@ const SITE = (() => {
         interesse: kind === "anunciar" ? "" : im ? (finOf(im) === "Locação" ? "Alugar" : "Comprar") : "",
         obs: kind === "anunciar" ? `Quer ${d.fin.toLowerCase()} ${d.tipo}${d.bairro ? " no " + d.bairro : ""}${d.valor ? ", valor pretendido " + d.valor : ""}. ${d.msg || ""}` : kind === "visita" ? `Pediu visita pelo site: ${d.data} (${d.periodo}).` : (d.msg || "")};
       const ref = await S.db.collection("leads").add(lead);
+      let captacaoId = "";
+      if (kind === "anunciar") { const cref = await S.db.collection("captacoes").add({propNome: d.nome, propTelefone: d.telefone, origem: "Site", finalidade: d.fin === "Alugar" ? "Alugar" : "Vender", tipo: d.tipo, bairro: d.bairro || "", valorPretendido: d.valor ? +String(d.valor).replace(/\D/g, "") || null : null, status: "Novo contato", obs: d.msg || "", criadoEm: now}); captacaoId = cref.id; }
+      await S.db.collection("mensagens").add({tipo: kind === "visita" ? "Visita" : kind === "anunciar" ? "Anunciar" : "Contato", nome: d.nome, telefone: d.telefone, email: d.email || "", imovelId: im ? im.id : "", leadId: ref.id, captacaoId, texto: lead.obs || d.msg || "", lida: false, respondida: false, criadoEm: now});
       if (kind === "visita") await S.db.collection("visitas").add({imovelId: im.id, leadId: ref.id, data: `${d.data}T${d.periodo === "Manhã" ? "09:00" : "15:00"}`, status: "Agendada", corretor: "", feedback: "Agendada pelo site", criadoEm: now});
       S.sflash = {k: kind, h: location.hash, cls: "ok", t: kind === "visita" ? "Pedido de visita enviado! Um corretor vai confirmar com você." : kind === "anunciar" ? "Recebemos os dados! Vamos entrar em contato para a avaliação." : "Mensagem enviada! Responderemos em breve."};
       render(); return;
@@ -1326,8 +1410,223 @@ const SITE = (() => {
     }
     btn.disabled = false;
   });
-  return {view};
+  return {view, page};
 })();
+
+/* ---------- Portal do corretor (acesso restrito) ---------- */
+const CAPT_ST = ["Novo contato","Avaliação agendada","Avaliado","Documentação","Captado","Desistiu"];
+const FICHA_ST = ["Em análise","Pendente de documentos","Aprovada","Reprovada"];
+const DOCS = [["docId","RG ou CNH"],["docCpf","CPF"],["docRenda","Comprovante de renda"],["docResid","Comprovante de residência"],["docCivil","Certidão de estado civil"]];
+Object.assign(SCHEMAS, {
+  mensagens: { one:"mensagem", fields:[
+    {k:"tipo", l:"Tipo", t:"select", o:["Contato","Visita","Anunciar","WhatsApp","Telefone","E-mail","Instagram"], c:3, def:"WhatsApp"},
+    {k:"nome", l:"Nome", req:1, c:3},
+    {k:"telefone", l:"Telefone / WhatsApp", c:3},
+    {k:"email", l:"E-mail", t:"email", c:3},
+    {k:"imovelId", l:"Imóvel", t:"ref", ref:"imoveis"},
+    {k:"texto", l:"Mensagem", t:"area", req:1},
+  ]},
+  captacoes: { one:"captação", fields:[
+    {sec:"Proprietário"},
+    {k:"propNome", l:"Nome do proprietário", req:1, c:3},
+    {k:"propTelefone", l:"Telefone / WhatsApp", c:3},
+    {k:"propEmail", l:"E-mail", t:"email", c:3},
+    {k:"origem", l:"Como chegou", t:"select", o:ORIGENS, c:3},
+    {sec:"Imóvel"},
+    {k:"finalidade", l:"Quer", t:"select", o:["Vender","Alugar","Vender ou alugar"], c:2},
+    {k:"tipo", l:"Tipo", t:"select", o:TIPOS, c:2},
+    {k:"bairro", l:"Bairro", c:2},
+    {k:"endereco", l:"Endereço", c:3},
+    {k:"valorPretendido", l:"Valor pretendido (R$)", t:"num", c:3},
+    {k:"area", l:"Área (m²)", t:"num", c:2},
+    {k:"quartos", l:"Quartos", t:"num", c:2},
+    {k:"vagas", l:"Vagas", t:"num", c:2},
+    {sec:"Andamento"},
+    {k:"status", l:"Situação", t:"select", o:CAPT_ST, c:3, def:"Novo contato"},
+    {k:"corretor", l:"Corretor", c:3},
+    {k:"dataAvaliacao", l:"Data da avaliação", t:"date", c:3},
+    {k:"valorAvaliado", l:"Valor avaliado (R$)", t:"num", c:3},
+    {k:"obs", l:"Anotações", t:"area"},
+  ]},
+  fichas: { one:"ficha", fields:[
+    {k:"tipo", l:"Tipo de ficha", t:"select", o:["Locação (inquilino)","Compra","Fiador","Proprietário"], c:3, req:1},
+    {k:"status", l:"Situação", t:"select", o:FICHA_ST, c:3, def:"Em análise"},
+    {sec:"Dados pessoais"},
+    {k:"nome", l:"Nome completo", req:1},
+    {k:"cpf", l:"CPF", c:2},
+    {k:"rg", l:"RG", c:2},
+    {k:"nascimento", l:"Nascimento", t:"date", c:2},
+    {k:"estadoCivil", l:"Estado civil", t:"select", o:["","Solteiro(a)","Casado(a)","União estável","Divorciado(a)","Viúvo(a)"], c:2},
+    {k:"profissao", l:"Profissão", c:2},
+    {k:"renda", l:"Renda mensal (R$)", t:"num", c:2},
+    {k:"telefone", l:"Telefone / WhatsApp", c:3},
+    {k:"email", l:"E-mail", t:"email", c:3},
+    {k:"endereco", l:"Endereço atual"},
+    {sec:"Negócio"},
+    {k:"imovelId", l:"Imóvel", t:"ref", ref:"imoveis", c:3},
+    {k:"leadId", l:"Lead de origem", t:"ref", ref:"leads", c:3},
+    {k:"garantia", l:"Garantia / pagamento", t:"select", o:["","Caução","Fiador","Seguro fiança","Título de capitalização","À vista","Financiamento","Consórcio"], c:3},
+    {k:"corretor", l:"Corretor", c:3},
+    {sec:"Documentos entregues"},
+    ...DOCS.map(([k,l]) => ({k, l, t:"bool", c:2})),
+    {k:"obs", l:"Observações", t:"area"},
+  ]},
+  usuarios: { one:"usuário", fields:[
+    {k:"nome", l:"Nome", req:1, c:3},
+    {k:"usuario", l:"Usuário (login)", req:1, c:3},
+    {k:"senha", l:"Senha", t:"password", c:3},
+    {k:"perfil", l:"Perfil", t:"select", o:["Administrador","Corretor","Atendimento"], c:3, def:"Corretor"},
+    {k:"telefone", l:"Telefone", c:3},
+    {k:"email", l:"E-mail", t:"email", c:3},
+    {k:"ativo", l:"Acesso ativo", t:"bool", def:true},
+  ]},
+});
+async function sha(s){ const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("m2:" + s)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join(""); }
+try { S.sess = JSON.parse(sessionStorage.getItem("m2sess") || "null"); } catch (e) { S.sess = null; }
+const setSess = s => { S.sess = s; try { s ? sessionStorage.setItem("m2sess", JSON.stringify(s)) : sessionStorage.removeItem("m2sess"); } catch (e) {} };
+const isAdmin = () => S.sess && S.sess.perfil === "Administrador";
+
+const PNAV = [
+  {g:"Atendimento", items:[["painel","Início"],["mensagens","Mensagens"],["interessados","Leads"],["fichas","Fichas"]]},
+  {g:"Imóveis", items:[["captacao","Captação"],["imoveis","Imóveis"],["proprietarios","Proprietários"],["locacoes","Locações"],["negocios","Visitas e negócios"]]},
+  {g:"Administração", items:[["cadastro","Cadastro interno"]]},
+];
+const PICON = {
+  painel:ICON.painel, imoveis:ICON.imoveis, proprietarios:ICON.proprietarios, locacoes:ICON.locacoes, interessados:ICON.interessados, negocios:ICON.negocios,
+  mensagens:'<path d="M3 5h18v12H8l-5 4z"/>', fichas:'<path d="M6 2h9l5 5v15H6zM14 3v5h5M9 12h8v2H9zm0 4h8v2H9z"/>',
+  captacao:'<path d="M12 3l9 7h-3v10h-5v-6h-2v6H6V10H3zM16 3h3v4"/>', cadastro:'<path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5zm0 6a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm-4 9c.6-2 2.2-3 4-3s3.4 1 4 3z"/>',
+  site:'<path d="M3 4h18l-1 5H4zM4 10h16v10H4zM9 14h6v6H9z"/>', sair:'<path d="M10 3h9v18h-9v-2h7V5h-7zM8 7l1.4 1.4L6.8 11H15v2H6.8l2.6 2.6L8 17l-5-5z"/>',
+};
+function badgeFor(id){
+  const D = S.data;
+  const n = id === "mensagens" ? D.mensagens.filter(m => !m.lida).length : id === "interessados" ? D.leads.filter(l => (l.etapa||"Novo") === "Novo").length
+    : id === "captacao" ? D.captacoes.filter(c => (c.status||"Novo contato") === "Novo contato").length : id === "fichas" ? D.fichas.filter(f => (f.status||"Em análise") === "Em análise").length : 0;
+  return n ? `<span class="pbadge">${n}</span>` : "";
+}
+function portalLayout(v, content){
+  const titles = Object.fromEntries(PNAV.flatMap(g => g.items));
+  const nav = PNAV.map(g => (g.g === "Administração" && !isAdmin()) ? "" : `<div class="pgrp"><span>${g.g}</span>${g.items.map(([id,l]) => `<a href="#${id}" ${id===v?'aria-current="page"':""}><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${PICON[id]||""}</svg>${l}${badgeFor(id)}</a>`).join("")}</div>`).join("");
+  return `<div class="portal"><aside class="pside" id="pside"><a class="plogo" href="#painel">${logoImgs("")}</a><nav class="pnav" aria-label="Portal">${nav}
+      <div class="pgrp"><a href="#vitrine"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${PICON.site}</svg>Ver site</a><button type="button" data-act="logout"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${PICON.sair}</svg>Sair</button></div></nav></aside>
+    <div class="pmain"><div class="ptop"><button type="button" class="pburger" data-act="pmenu" aria-label="Abrir menu"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/></svg></button>
+      <span class="ptitle"><span class="pkicker">Área administrativa</span>${esc(titles[v] || "Área administrativa")}</span><span class="puser"><b>${esc(S.sess.nome)}</b><small>${esc(S.sess.perfil)}</small></span></div>
+      ${S.sess.padrao ? `<div class="pwarn">Você entrou com o acesso padrão. ${isAdmin() ? `<a href="#cadastro">Cadastre os usuários da equipe</a> para trocar a senha.` : ""}</div>` : ""}
+      <div class="pcontent">${content}</div></div><div class="pscrim" data-act="pmenu"></div></div>`;
+}
+
+/* login */
+function vAcesso(){
+  const semUsuarios = !S.data.usuarios.length;
+  return `<div class="swrap slogin"><form class="sbox sform plogin" id="loginf" autocomplete="on">
+    <div class="plock"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3h2v12H5V10zm2 0h6V7a3 3 0 0 0-6 0zm3 4a1.5 1.5 0 0 0-1 2.6V19h2v-2.4a1.5 1.5 0 0 0-1-2.6z"/></svg></div>
+    <h1>Área administrativa</h1><p>Acesso exclusivo da equipe M2. Entre com seu usuário e senha.</p>
+    ${!S.internal ? `<p class="smsg bad">Esta conta não tem permissão para acessar a área administrativa.</p>` : `
+    <label>Usuário<input id="lg_u" name="username" autocomplete="username" required></label>
+    <label>Senha<input id="lg_p" name="password" type="password" autocomplete="current-password" required></label>
+    <button class="sbtn sbtn-dark" type="submit">Entrar</button>
+    <p class="smsg bad" id="lg_err" hidden></p>
+    ${semUsuarios ? `<p class="phint">Primeiro acesso: usuário <b class="mono">admin</b> e senha <b class="mono">m2admin</b>. Depois cadastre a equipe em Cadastro interno.</p>` : ""}`}
+  </form></div>`;
+}
+async function doLogin(u, p){
+  u = (u||"").trim().toLowerCase();
+  const users = S.data.usuarios;
+  if (!users.length) { if (u === "admin" && p === "m2admin") return {nome:"Administrador", perfil:"Administrador", padrao:true}; return null; }
+  const x = users.find(z => (z.usuario||"").toLowerCase() === u && z.ativo !== false);
+  if (!x || !x.senhaHash || x.senhaHash !== await sha(p)) return null;
+  return {id:x.id, nome:x.nome, perfil:x.perfil || "Corretor"};
+}
+
+/* Mensagens */
+function vMensagens(){
+  S.mf = S.mf || "nao";
+  const all = [...S.data.mensagens].sort((a,b) => (b.criadoEm||"").localeCompare(a.criadoEm||""));
+  const L = all.filter(m => S.mf === "nao" ? !m.lida : S.mf === "pend" ? !m.respondida : true);
+  const tp = {Visita:"warn", Anunciar:"info", Contato:"", WhatsApp:"ok"};
+  return `<div class="head"><div><h1>Mensagens</h1><p>${all.filter(m=>!m.lida).length} não lidas · ${all.filter(m=>!m.respondida).length} sem resposta</p></div>${addBtn("mensagens","Registrar mensagem")}</div>
+  <div class="filters"><div class="seg" role="group" aria-label="Filtro">${[["nao","Não lidas"],["pend","Sem resposta"],["todas","Todas"]].map(([k,l]) => `<button data-mf="${k}" aria-pressed="${S.mf===k}">${l}</button>`).join("")}</div></div>
+  ${!all.length ? emptyBox("Nenhuma mensagem ainda", "As mensagens do site (Fale conosco, pedidos de visita e anúncios) chegam aqui. Você também pode registrar mensagens do WhatsApp ou telefone.", "mensagens", "Registrar mensagem")
+   : L.length ? `<div class="msgs">${L.map(m => { const im = byId("imoveis", m.imovelId); return `<article class="msg ${m.lida ? "" : "unread"}">
+      <div class="msgh"><span class="pill ${tp[m.tipo]||""}">${esc(m.tipo||"Contato")}</span><b>${esc(m.nome||"Sem nome")}</b><span class="mono msgt">${m.criadoEm ? fdt(m.criadoEm) : ""}</span></div>
+      <div class="msgc mono">${esc([m.telefone, m.email].filter(Boolean).join(" · ") || "Sem contato informado")}</div>
+      <p class="msgx">${esc(m.texto||"")}</p>
+      ${im ? `<button class="linkbtn" data-open="imoveis" data-id="${im.id}">${esc(imLabel(im))}</button>` : ""}
+      <div class="msga">${S.canWrite ? `<button class="btn sm" data-mread="${m.id}">${m.lida ? "Marcar como não lida" : "Marcar como lida"}</button><button class="btn sm ${m.respondida ? "" : "pri"}" data-mresp="${m.id}">${m.respondida ? "Respondida ✓" : "Marcar como respondida"}</button>` : ""}
+        ${m.leadId && byId("leads", m.leadId) ? `<button class="btn sm" data-open="leads" data-id="${m.leadId}">Ver lead</button>` : ""}${m.captacaoId && byId("captacoes", m.captacaoId) ? `<button class="btn sm" data-open="captacoes" data-id="${m.captacaoId}">Ver captação</button>` : ""}</div></article>`; }).join("")}</div>`
+   : `<div class="empty">Nada por aqui. ${S.mf === "nao" ? "Todas as mensagens foram lidas." : "Todas as mensagens foram respondidas."}</div>`}`;
+}
+
+/* Captação */
+function vCaptacao(){
+  const C = S.data.captacoes;
+  return `<div class="head"><div><h1>Captação de imóveis</h1><p>${C.filter(c=>!["Captado","Desistiu"].includes(c.status)).length} em andamento · ${C.filter(c=>c.status==="Captado").length} captados</p></div>${addBtn("captacoes","Captação")}</div>
+  ${!C.length ? emptyBox("Nenhuma captação", "Registre os proprietários que querem vender ou alugar com a M2. Os pedidos de “Anunciar imóvel” do site entram aqui sozinhos.", "captacoes", "Captação") :
+  `<div class="kanban">${CAPT_ST.map(st => { const L = C.filter(c => (c.status||"Novo contato") === st);
+    return `<div class="col"><h3><span>${st}</span><span class="num">${L.length}</span></h3>${L.map(c => `<div class="lead"><button class="linkbtn" data-open="captacoes" data-id="${c.id}"><b>${esc(c.propNome||"Sem nome")}</b></button>
+      <small>${esc([c.finalidade, c.tipo, c.bairro].filter(Boolean).join(" · "))}</small>${c.valorPretendido ? `<small>Pretende ${money(c.valorPretendido)}</small>` : ""}${c.propTelefone ? `<small class="mono">${esc(c.propTelefone)}</small>` : ""}
+      ${S.canWrite ? `<select aria-label="Situação de ${esc(c.propNome||"")}" data-cst="${c.id}">${CAPT_ST.map(x => `<option ${x===st?"selected":""}>${x}</option>`).join("")}</select>
+      ${c.imovelId && byId("imoveis", c.imovelId) ? `<button class="btn sm" data-open="imoveis" data-id="${c.imovelId}">Ver ${esc(byId("imoveis", c.imovelId).codigo)}</button>` : st !== "Desistiu" ? `<button class="btn sm" data-cconv="${c.id}">Transformar em imóvel</button>` : ""}` : ""}</div>`).join("") || `<small style="color:var(--muted)">—</small>`}</div>`; }).join("")}</div>`}`;
+}
+async function convertCapt(id){
+  const c = byId("captacoes", id); if (!c) return;
+  try {
+    const now = new Date().toISOString();
+    const prop = await S.db.collection("proprietarios").add({nome:c.propNome||"Proprietário", telefone:c.propTelefone||"", email:c.propEmail||"", obs:"Cadastrado a partir da captação", criadoEm:now});
+    const fin = c.finalidade === "Alugar" ? "Locação" : c.finalidade === "Vender ou alugar" ? "Venda e Locação" : "Venda";
+    const v = n0(c.valorAvaliado) || n0(c.valorPretendido) || null;
+    const codigo = nextCode();
+    const im = await S.db.collection("imoveis").add({codigo, titulo:`${c.tipo||"Imóvel"}${c.bairro ? " no " + c.bairro : ""}`, finalidade:fin, tipo:c.tipo||"Casa", status:"Disponível",
+      proprietarioId:prop.id, endereco:c.endereco||"", bairro:c.bairro||"", cidade:"Parnaíba", area:c.area||null, quartos:c.quartos||null, vagas:c.vagas||null,
+      valorVenda: fin.includes("Venda") ? v : null, valorAluguel: fin === "Locação" ? v : null, descricao:"", fotos:[], publicar:false, destaque:false, criadoEm:now});
+    await S.db.collection("captacoes").doc(id).update({status:"Captado", imovelId:im.id});
+    toast(`Imóvel ${codigo} criado fora do site. Complete fotos e descrição.`);
+  } catch (e) { toast("Não foi possível criar o imóvel"); }
+}
+
+/* Fichas */
+function vFichas(){
+  S.ff = S.ff || "";
+  const F = [...S.data.fichas].sort((a,b) => (b.criadoEm||"").localeCompare(a.criadoEm||"")).filter(f => !S.ff || (f.status||"Em análise") === S.ff);
+  const sp = {"Em análise":"info","Pendente de documentos":"warn","Aprovada":"ok","Reprovada":"bad"};
+  return `<div class="head"><div><h1>Fichas cadastrais</h1><p>${S.data.fichas.length} fichas · ${S.data.fichas.filter(f=>(f.status||"Em análise")==="Em análise").length} em análise</p></div>${addBtn("fichas","Ficha")}</div>
+  <div class="filters"><select id="ffst"><option value="">Todas as situações</option>${FICHA_ST.map(s => `<option ${S.ff===s?"selected":""}>${s}</option>`).join("")}</select></div>
+  ${!S.data.fichas.length ? emptyBox("Nenhuma ficha", "Inclua a ficha cadastral de inquilinos, compradores, fiadores e proprietários, com os documentos entregues.", "fichas", "Ficha") :
+  `<div class="tbl"><table><thead><tr><th>Cliente</th><th>Tipo</th><th>Imóvel</th><th>Renda</th><th>Documentos</th><th>Situação</th><th>Data</th></tr></thead><tbody>
+  ${F.map(f => { const im = byId("imoveis", f.imovelId); const nd = DOCS.filter(([k]) => f[k]).length; return `<tr data-open="fichas" data-id="${f.id}"><td><b>${esc(f.nome)}</b><small class="mono">${esc(f.cpf||"")}</small></td><td>${esc(f.tipo||"—")}</td><td>${esc(im?.codigo||"—")}<small>${esc(im?.titulo||"")}</small></td><td class="num">${money(f.renda)}</td><td><span class="pill ${nd===DOCS.length?"ok":nd?"warn":""}">${nd}/${DOCS.length}</span></td><td><span class="pill ${sp[f.status||"Em análise"]||""}">${esc(f.status||"Em análise")}</span></td><td class="num">${f.criadoEm ? fdate(f.criadoEm) : "—"}</td></tr>`; }).join("")}
+  </tbody></table></div>`}`;
+}
+
+/* Cadastro interno */
+function vCadastro(){
+  if (!isAdmin()) return `<div class="emptybox"><b>Só administradores</b><span>Peça a um administrador para alterar os cadastros da equipe.</span></div>`;
+  const U = [...S.data.usuarios].sort((a,b) => (a.nome||"").localeCompare(b.nome||""));
+  return `<div class="head"><div><h1>Cadastro interno</h1><p>Equipe com acesso à área administrativa</p></div><div style="display:flex;gap:8px;flex-wrap:wrap">${S.canWrite ? `<button class="btn" data-act="cfg">Dados da imobiliária</button>` : ""}${addBtn("usuarios","Usuário")}</div></div>
+  ${!U.length ? emptyBox("Nenhum usuário cadastrado", "Enquanto não houver usuários, a área administrativa aceita o acesso padrão (admin / m2admin). Cadastre pelo menos um administrador para desativar esse acesso.", "usuarios", "Usuário") :
+  `<div class="tbl"><table><thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Contato</th><th>Acesso</th></tr></thead><tbody>
+  ${U.map(u => `<tr data-open="usuarios" data-id="${u.id}"><td><b>${esc(u.nome)}</b></td><td class="mono">${esc(u.usuario)}</td><td>${esc(u.perfil||"Corretor")}</td><td>${esc(u.telefone||"—")}<small>${esc(u.email||"")}</small></td><td><span class="pill ${u.ativo===false?"bad":"ok"}">${u.ativo===false?"Bloqueado":"Ativo"}</span></td></tr>`).join("")}
+  </tbody></table></div>`}
+  <p class="note" style="margin-top:16px">As senhas ficam guardadas de forma embaralhada (hash). Nesta versão de demonstração o login protege as telas, mas não substitui a segurança de um servidor próprio.</p>`;
+}
+
+/* eventos do portal */
+document.addEventListener("click", async e => {
+  const t = e.target.closest("[data-mread],[data-mresp],[data-mf],[data-cconv]"); if (!t) return;
+  if (t.dataset.mf) { S.mf = t.dataset.mf; return render(); }
+  if (t.dataset.mread) { const m = byId("mensagens", t.dataset.mread); return S.db.collection("mensagens").doc(m.id).update({lida: !m.lida}).catch(() => toast("Não foi possível alterar")); }
+  if (t.dataset.mresp) { const m = byId("mensagens", t.dataset.mresp); return S.db.collection("mensagens").doc(m.id).update({respondida: !m.respondida, lida: true, respondidaPor: S.sess?.nome || ""}).catch(() => toast("Não foi possível alterar")); }
+  if (t.dataset.cconv) { t.disabled = true; return convertCapt(t.dataset.cconv); }
+});
+document.addEventListener("change", e => {
+  if (e.target.dataset.cst) return S.db.collection("captacoes").doc(e.target.dataset.cst).update({status: e.target.value}).catch(() => toast("Não foi possível mudar a situação"));
+  if (e.target.id === "ffst") { S.ff = e.target.value; render(); }
+});
+document.addEventListener("submit", async e => {
+  if (e.target.id !== "loginf") return;
+  e.preventDefault();
+  const err = $("#lg_err"); const s = await doLogin($("#lg_u").value, $("#lg_p").value);
+  if (!s) { err.hidden = false; err.textContent = "Usuário ou senha incorretos."; return; }
+  setSess(s); location.hash = "painel";
+});
 
 /* ---------- Modal helpers ---------- */
 let modalClose = null;
@@ -1407,6 +1706,7 @@ function fieldHtml(f, d){
     case "ref": { const opts = [...S.data[f.ref]].sort((a,b)=>refLabel(f.ref,a).localeCompare(refLabel(f.ref,b)));
       return `<div class="${cls}">${lab}<select id="${id}" name="${f.k}" ${req}><option value="">${f.req?"Escolha…":"— nenhum —"}</option>${opts.map(o=>`<option value="${o.id}" ${o.id===v?"selected":""}>${esc(refLabel(f.ref,o))}</option>`).join("")}</select></div>`; }
     case "area": return `<div class="${cls}">${lab}<textarea id="${id}" name="${f.k}" ${req}>${esc(v)}</textarea></div>`;
+    case "password": return `<div class="${cls}">${lab}<input type="password" id="${id}" name="${f.k}" autocomplete="new-password" placeholder="${d.senhaHash ? "Deixe em branco para manter" : "Defina uma senha"}"></div>`;
     case "bool": return `<div class="${cls}"><label class="chk"><input type="checkbox" id="${id}" name="${f.k}" ${v?"checked":""}> ${f.l}</label></div>`;
     case "num": return `<div class="${cls}">${lab}<input type="number" step="any" min="0" inputmode="decimal" id="${id}" name="${f.k}" value="${esc(v)}" ${req}></div>`;
     case "date": return `<div class="${cls}">${lab}<input type="date" id="${id}" name="${f.k}" value="${esc(v)}" ${req}></div>`;
@@ -1450,11 +1750,13 @@ function openForm(col, d, preset){
       const out = {};
       for (const f of sc.fields) { if (!f.k) continue; const el = ov.querySelector(`[name="${f.k}"]`);
         if (f.t === "photos") { out.fotos = fotos; continue; }
+        if (f.t === "password") { if (el && el.value) { if (el.value.length < 6) { el.focus(); return showErr({message:"A senha precisa ter pelo menos 6 caracteres."}); } out.senhaHash = await sha(el.value); } else if (isNew) { el && el.focus(); return showErr({message:"Defina uma senha."}); } continue; }
         if (!el) continue;
         let v = f.t === "bool" ? el.checked : el.value.trim();
         if (f.t === "num") v = v === "" ? null : +v;
         if (f.req && (v === "" || v == null)) { el.focus(); return showErr({message:`Preencha “${f.l}”.`}); }
         out[f.k] = v; }
+      if (col === "usuarios") { out.usuario = (out.usuario||"").toLowerCase().replace(/\s+/g, ""); if (S.data.usuarios.some(u => u.usuario === out.usuario && u.id !== d.id)) return showErr({message:"Já existe alguém com esse usuário."}); }
       const btn = $("#save", ov); btn.disabled = true; btn.textContent = "Salvando…";
       try {
         if (isNew) {
@@ -1528,17 +1830,22 @@ document.addEventListener("click", e => {
   if (t.dataset.vfin !== undefined) { S.v.fin = t.dataset.vfin; return render(); }
   const a = t.dataset.act;
   if (a === "close") closeModal();
+  if (a === "logout") { setSess(null); location.hash = "vitrine"; return; }
+  if (a === "pmenu") { $("#pside")?.classList.toggle("open"); $(".portal")?.classList.toggle("menu-open"); return; }
   if (a === "seed") { t.disabled = true; seed().catch(()=>toast("Não foi possível carregar os exemplos")); }
   if (a === "unseed") { t.disabled = true; unseed(); }
   if (a === "cfg") openCfg();
 });
 document.addEventListener("input", e => {
   const id = e.target.id;
+  if (id === "lq") { S.lf.q = e.target.value; const pos = e.target.selectionStart; render(); const el = $("#lq"); el.focus(); el.setSelectionRange(pos,pos); return; }
   if (id === "vq") { S.v.q = e.target.value; const pos = e.target.selectionStart; render(); const el = $("#vq"); el.focus(); el.setSelectionRange(pos,pos); return; }
   if (id === "fq") { S.f.q = e.target.value; const pos = e.target.selectionStart; render(); const el = $("#fq"); el.focus(); el.setSelectionRange(pos,pos); }
 });
 document.addEventListener("change", e => {
   const id = e.target.id, v = e.target.value;
+  if (id === "let") { S.lf.et = v; return render(); }
+  if (id === "lor") { S.lf.or = v; return render(); }
   if (id === "flot") S.f.lot = v; else if (id === "ffin") S.f.fin = v; else if (id === "fst") S.f.st = v; else if (id === "ftipo") S.f.tipo = v;
   else if (id === "vtipo") S.v.tipo = v; else if (id === "vbairro") S.v.bairro = v;
   else if (e.target.dataset.etapa) { S.db.collection("leads").doc(e.target.dataset.etapa).update({etapa:v}).catch(()=>toast("Não foi possível mudar a etapa")); return; }
