@@ -2,6 +2,7 @@
 <html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#1d3b85">
+<meta name="description" content="M2 Imóveis e Loteamentos: casas, apartamentos e lotes para comprar e alugar em Parnaíba.">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head><body>
 <script src="data.js"></script>
@@ -241,6 +242,175 @@ a.btn.pri{color:var(--accent-ink)}
 .psearch small{flex-basis:100%;color:var(--muted)}
 .althead{font-family:var(--f-display);font-weight:700;font-size:16px;margin:28px 0 10px}
 
+/* ---------- Site público ---------- */
+.sitemode header.top,.sitemode nav.bnav{display:none!important}
+.sitemode main.gut{padding:0}
+.sitemode main>.wrap{max-width:none}
+.site{--sw:1200px;background:var(--bg);color:var(--ink);font-size:15px}
+.swrap{max-width:var(--sw);margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.site h1,.site h2,.site h3{font-family:var(--f-display)}
+.sbtn{display:inline-flex;align-items:center;justify-content:center;gap:6px;border-radius:999px;padding:11px 22px;font-weight:700;text-decoration:none;border:2px solid transparent;cursor:pointer;font-size:14px;white-space:nowrap}
+.sbtn-gold{background:var(--gold);color:#1a1405}
+.sbtn-gold:hover{filter:brightness(1.07)}
+.sbtn-dark{background:var(--accent);color:var(--accent-ink)}
+.sbtn-line{background:transparent;color:var(--accent);border-color:var(--accent)}
+.sbtn:disabled{opacity:.6}
+.shead{position:sticky;top:env(safe-area-inset-top,0px);z-index:30;background:var(--surface);border-bottom:1px solid var(--line)}
+.shbar{display:flex;align-items:center;gap:16px;min-height:72px}
+.slogo{display:flex;align-items:center;margin-right:auto}
+.slogo img{height:50px;width:auto}
+.snav{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.snav a{color:var(--ink);text-decoration:none;font-weight:600;font-size:13px;letter-spacing:.04em;text-transform:uppercase;padding:8px 10px;border-radius:6px}
+.snav a:hover{color:var(--accent);background:var(--sunk)}
+.snav a.sbtn{text-transform:none;letter-spacing:0;font-size:13px;padding:9px 16px;color:var(--accent-ink);margin-left:6px}
+.sfavlink{display:inline-flex;align-items:center;gap:5px}
+.sbadge{background:var(--gold);color:#1a1405;border-radius:99px;font-size:11px;padding:0 7px}
+.sburger{display:none;background:none;border:0;color:var(--ink);cursor:pointer;padding:6px}
+.shero{position:relative;background:linear-gradient(90deg,rgba(10,22,52,.88) 0%,rgba(10,22,52,.55) 55%,rgba(10,22,52,.2) 100%),var(--hero,none) center/cover no-repeat,#1d3b85;color:#fff}
+.shgrid{display:grid;grid-template-columns:1fr minmax(320px,440px);gap:32px;align-items:center;padding-block:56px}
+.shtxt h1{font-size:clamp(28px,4.4vw,48px);line-height:1.08;font-weight:800;margin:0 0 12px;color:#fff}
+.shtxt p{font-size:17px;max-width:46ch;color:rgba(255,255,255,.88);margin:0}
+.ssearch{background:var(--surface);color:var(--ink);border-radius:14px;padding:18px;display:grid;gap:12px;box-shadow:0 18px 40px rgba(0,0,0,.25)}
+.stabs{display:flex;gap:6px;background:var(--sunk);padding:4px;border-radius:999px}
+.stabs button{flex:1;border:0;background:none;padding:9px 6px;border-radius:999px;font-weight:700;font-size:13px;cursor:pointer;color:var(--muted)}
+.stabs button[aria-selected="true"]{background:var(--accent);color:var(--accent-ink)}
+.sfields{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sfields label,.sord{display:grid;gap:4px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);min-width:0}
+.ssearch select,.ssearch input,.sord select,.sform input,.sform select,.sform textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:10px 12px;width:100%;min-width:0;text-transform:none;letter-spacing:0;font-weight:400}
+.sq{grid-column:1/-1;display:grid;gap:4px}
+.sq>span{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.sq>div{display:flex;gap:6px}
+.sq button{flex:1;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 0;font-weight:700;cursor:pointer;color:var(--ink)}
+.sq button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.ssec{padding-block:48px}
+.salt{background:var(--surface)}
+.ssec h2{font-size:clamp(22px,2.6vw,30px);margin:0 0 20px;color:var(--accent)}
+.sc{text-align:center}
+.shd{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:20px}
+.shd h2{margin:0}
+.spills{display:flex;gap:6px}
+.spills button{border:2px solid var(--accent);background:none;color:var(--accent);border-radius:999px;padding:7px 18px;font-weight:700;cursor:pointer}
+.spills button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+.scard{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:box-shadow .2s}
+.scard:hover{box-shadow:0 10px 26px rgba(20,30,60,.14)}
+.sph{position:relative;aspect-ratio:4/3;max-width:100%;background:var(--sunk);overflow:hidden}
+.sph img,.sgal img{width:100%;height:100%;object-fit:cover;display:block}
+.snoph{display:grid;place-items:center;height:100%;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.08em;font-size:13px;min-height:200px}
+.sarr{position:absolute;top:50%;transform:translateY(-50%);width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.88);color:#111;font-size:22px;line-height:1;cursor:pointer;display:grid;place-items:center}
+.sarr.l{left:8px}.sarr.r{right:8px}
+.scount{position:absolute;left:10px;bottom:10px;background:rgba(0,0,0,.55);color:#fff;font-size:11px;padding:2px 8px;border-radius:99px}
+.sheart{position:absolute;top:8px;right:8px;width:36px;height:36px;border-radius:50%;border:0;background:rgba(255,255,255,.92);color:#8a8f99;cursor:pointer;display:grid;place-items:center}
+.sheart.on{color:#d23b4f}
+.silus{position:absolute;right:10px;bottom:10px;background:rgba(0,0,0,.55);color:#fff;font-size:10px;font-weight:600;padding:2px 8px;border-radius:99px}
+.sdest{position:absolute;top:10px;left:10px;background:var(--gold);color:#1a1405;font-size:11px;font-weight:800;padding:3px 10px;border-radius:99px;text-transform:uppercase;letter-spacing:.05em}
+.sbody{display:grid;gap:4px;padding:14px 16px 16px;text-decoration:none;color:inherit;flex:1}
+.sloc{display:flex;align-items:center;gap:4px;color:var(--muted);font-size:13px}
+.scod{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.sbody h3{font-size:16px;margin:4px 0 0;color:var(--ink)}
+.stit{margin:0;color:var(--muted);font-size:13px}
+.sprice{font-family:var(--f-display);font-weight:800;font-size:21px;color:var(--accent);margin-top:6px;font-variant-numeric:tabular-nums}
+.sprice small{font-size:13px;color:var(--muted);font-weight:600}
+.sfeat{display:flex;flex-wrap:wrap;gap:6px 14px;border-top:1px solid var(--line);padding-top:10px;margin-top:8px;color:var(--muted);font-size:13px}
+.sfeat span{display:inline-flex;align-items:center;gap:5px}
+.smore{text-align:center;margin-top:26px}
+.sempty{color:var(--muted);padding:24px 0}
+.sdif{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px}
+.sdif div{border-top:4px solid var(--gold);background:var(--bg);border-radius:10px;padding:18px}
+.sdif h3{margin:0 0 6px;font-size:17px;color:var(--accent)}
+.sdif p{margin:0;color:var(--muted)}
+.scta{background:var(--accent);color:var(--accent-ink);border-radius:16px;padding:32px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.scta h2{color:inherit;margin:0 0 6px}
+.scta p{margin:0;opacity:.88}
+.sbairros{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.sbairros button{display:grid;gap:2px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px 16px;cursor:pointer;color:var(--ink)}
+.sbairros button:hover{border-color:var(--accent)}
+.sbairros b{font-family:var(--f-display);font-size:16px}
+.sbairros span{color:var(--muted);font-size:13px}
+.slinks{display:flex;flex-wrap:wrap;justify-content:center;gap:10px}
+.slinks a{border:1px solid var(--line);border-radius:999px;padding:8px 16px;color:var(--accent);text-decoration:none;font-weight:600;background:var(--bg)}
+.sbread{padding-block:16px;font-size:13px;color:var(--muted)}
+.sbread a{color:var(--accent);text-decoration:none}
+.slist{display:grid;grid-template-columns:320px 1fr;gap:24px;align-items:start;padding-bottom:48px}
+.sfilt{position:sticky;top:90px}
+.sfilt details>summary{font-family:var(--f-display);font-weight:800;font-size:18px;cursor:pointer;margin-bottom:10px;color:var(--accent)}
+.sfilt .ssearch{box-shadow:none;border:1px solid var(--line)}
+.sfilt .sfields{grid-template-columns:1fr}
+.sfilt .sord{margin-top:12px}
+.sres{min-width:0}
+.sreshd{display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.sreshd h1{font-size:clamp(22px,2.6vw,30px);margin:0;color:var(--accent);margin-right:auto}
+.sreshd>span{color:var(--muted)}
+.sreshd .sord{min-width:160px}
+.snote{color:var(--warn);font-weight:600;font-size:14px}
+.sdet{display:grid;grid-template-columns:1fr 360px;gap:28px;align-items:start;padding-bottom:40px}
+.sdmain{min-width:0}
+.sgal{position:relative;aspect-ratio:16/10;max-width:100%;border-radius:14px;overflow:hidden;background:var(--sunk)}
+.sthumbs{display:flex;gap:8px;overflow-x:auto;padding:10px 0}
+.sthumbs button{flex:none;width:96px;height:68px;border:0;padding:0;border-radius:8px;overflow:hidden;cursor:pointer;background:var(--sunk)}
+.sthumbs img{width:100%;height:100%;object-fit:cover}
+.sdhd{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;margin:14px 0}
+.sdhd h1{font-size:clamp(22px,3vw,32px);margin:6px 0 4px;color:var(--ink)}
+.sdact{display:flex;gap:8px;align-items:flex-start;flex-wrap:wrap}
+.sdact .sbtn{padding:8px 14px}
+.sfeat.big{border:1px solid var(--line);border-radius:12px;padding:14px;gap:10px 22px;background:var(--surface)}
+.sfeat.big span{display:grid;justify-items:center;gap:2px;font-size:12px;min-width:70px;text-align:center}
+.sfeat.big b{font-family:var(--f-display);font-size:16px;color:var(--ink)}
+.sdmain h2{font-size:20px;margin:26px 0 10px;color:var(--accent)}
+.sdesc{white-space:pre-wrap;margin:0;max-width:70ch}
+.sdside{display:grid;gap:16px;position:sticky;top:90px}
+.sbox{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+.sbox h3{margin:0 0 4px;font-size:18px;color:var(--accent)}
+.sprice.big{font-size:30px;margin:2px 0 6px}
+.smini{display:grid;gap:6px;margin:0}
+.smini div{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:6px}
+.smini dt{color:var(--muted)}.smini dd{margin:0;font-weight:600}
+.sform{display:grid;gap:10px}
+.s2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.smsg{margin:0;font-weight:600;font-size:14px}
+.smsg.ok{color:var(--ok)}.smsg.bad{color:var(--bad)}
+.spage{display:grid;grid-template-columns:1fr 400px;gap:32px;align-items:start;padding-bottom:48px}
+.spage.one{grid-template-columns:1fr;max-width:820px}
+.spage h1{font-size:clamp(26px,3.4vw,38px);color:var(--accent);margin:0 0 12px}
+.spage p{font-size:16px;max-width:60ch}
+.ssteps{display:grid;gap:14px;padding-left:20px;margin-top:20px}
+.ssteps li b{display:block;font-family:var(--f-display)}
+.sfoot{background:#0f1c3f;color:#d6def0;margin-top:20px}
+.sfgrid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:28px;padding-block:44px}
+.sfoot h4{font-family:var(--f-display);color:#fff;margin:0 0 10px;font-size:15px}
+.sfoot a,.sfoot .linkbtn{display:block;color:#d6def0;text-decoration:none;padding:3px 0;font-size:14px}
+.sfoot a:hover{color:var(--gold)}
+.sfoot p{margin:0 0 6px;font-size:14px}
+.sfabout img{height:56px;width:auto;margin-bottom:10px}
+.sfabout .logo-l{display:none}.sfabout .logo-d{display:block}
+.sfbase{border-top:1px solid rgba(255,255,255,.12);padding-block:14px;font-size:13px;color:#9fb0d0}
+.sfbase .linkbtn{display:inline;color:var(--gold)}
+.swa{position:fixed;right:max(16px,env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:40;background:#1f9d55;color:#fff;border-radius:999px;padding:10px 16px;display:flex;align-items:center;gap:8px;font-weight:700;box-shadow:0 8px 20px rgba(0,0,0,.25)}
+@media (max-width:960px){
+  .shgrid{grid-template-columns:1fr;padding-block:36px}
+  .slist,.sdet,.spage{grid-template-columns:1fr}
+  .sfilt,.sdside{position:static}
+  .sfilt details:not([open])>summary{margin-bottom:0}
+  .sfgrid{grid-template-columns:1fr 1fr}
+}
+@media (max-width:720px){
+  .site{font-size:14px}
+  .shbar{min-height:60px}
+  .slogo img{height:40px}
+  .sburger{display:block}
+  .snav{display:none;position:absolute;left:0;right:0;top:100%;background:var(--surface);border-bottom:1px solid var(--line);flex-direction:column;align-items:stretch;padding:8px max(16px,env(safe-area-inset-left,0px)) 14px;box-shadow:0 12px 24px rgba(0,0,0,.12)}
+  .snav.open{display:flex}
+  .snav a{padding:12px 6px;border-bottom:1px solid var(--line)}
+  .snav a.sbtn{margin:10px 0 0;border-bottom:0}
+  .ssec{padding-block:32px}
+  .sgrid{grid-template-columns:1fr}
+  .sfields{grid-template-columns:1fr}
+  .scta{padding:22px}
+  .sfgrid{grid-template-columns:1fr}
+  .swa span{display:none}
+  .swa{padding:12px}
+}
+
 .demobar{background:var(--warn-bg);color:var(--ink);font-size:13px;padding-block:8px}
 .demobar .wrap{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 /* ---------- Celular ---------- */
@@ -471,7 +641,7 @@ const CATS = {
   venda:{l:"Venda", s:"Casa / Apartamento", pk:"valorVenda", test:i => (i.finalidade||"").includes("Venda") && RESID.includes(i.tipo)},
   lote:{l:"Loteamento", s:"Lotes e terrenos", pk:"valorVenda", test:i => ["Lote","Terreno"].includes(i.tipo)},
 };
-const ORIGENS = ["WhatsApp","Instagram","Portal","Site","Indicação","Placa","Plantão","Outro"];
+const ORIGENS = ["Site","WhatsApp","Instagram","Portal","Site","Indicação","Placa","Plantão","Outro"];
 
 const SCHEMAS = {
   imoveis: { one:"imóvel", fields:[
@@ -569,9 +739,9 @@ const VIEWS = [
   {id:"locacoes", l:"Locações", int:1},
   {id:"interessados", l:"Interessados", int:1},
   {id:"negocios", l:"Visitas e negócios", int:1},
-  {id:"vitrine", l:"Vitrine"},
+  {id:"vitrine", l:"Site"},
 ];
-function curView(){ const h = location.hash.slice(1); const ok = VIEWS.filter(v => S.internal || !v.int).map(v=>v.id); return ok.includes(h) ? h : ok[0]; }
+function curView(){ let h = location.hash.slice(1); if (h.startsWith("vitrine") || h.startsWith("imovel-")) h = "vitrine"; const ok = VIEWS.filter(v => S.internal || !v.int).map(v=>v.id); return ok.includes(h) ? h : ok[0]; }
 const ICON = {
   painel:'<path d="M3 3h8v8H3zM13 3h8v5h-8zM13 10h8v11h-8zM3 13h8v8H3z"/>',
   imoveis:'<path d="M3 11l9-7 9 7v10h-6v-6H9v6H3z"/>',
@@ -593,7 +763,8 @@ function render(){
   renderNav();
   const v = curView();
   const el = $("#view");
-  const fn = {painel:vPainel, imoveis:vImoveis, proprietarios:vProp, locacoes:vLoc, interessados:vLeads, negocios:vNeg, vitrine:vVitrine}[v];
+  const fn = {painel:vPainel, imoveis:vImoveis, proprietarios:vProp, locacoes:vLoc, interessados:vLeads, negocios:vNeg, vitrine:SITE.view}[v];
+  document.body.classList.toggle("sitemode", v === "vitrine");
   el.innerHTML = fn();
   el.querySelectorAll(".tbl table").forEach(t => { const hs = [...t.querySelectorAll("th")].map(x => x.textContent); t.querySelectorAll("tbody tr").forEach(r => [...r.children].forEach((td, k) => td.dataset.label = hs[k] || "")); });
   const active = document.activeElement?.id;
@@ -912,6 +1083,252 @@ function vVitrine(){
      ${vsr && vsr.alt.length ? `<div class="althead">Na mesma faixa de preço, em outros bairros</div><div class="grid">${vsr.alt.slice(0,12).map(i=>imCard(i,true)).join("")}</div>` : ""}`}`;
 }
 
+/* ---------- Site público (estilo portal imobiliário) ---------- */
+const SITE = (() => {
+  const fav = new Set(); try { JSON.parse(localStorage.getItem("m2fav") || "[]").forEach(x => fav.add(x)); } catch (e) {}
+  const saveFav = () => { try { localStorage.setItem("m2fav", JSON.stringify([...fav])); } catch (e) {} };
+  S.sf = S.sf || {fin:"Venda", tipo:"", bairro:"", q:"", qmin:0, vmin:0, pmax:"", ord:"rec", lote:false};
+  S.dtab = S.dtab || "Venda";
+  const I = {
+    area:'<path d="M3 3h7v2H5v5H3zM14 3h7v7h-2V5h-5zM3 14h2v5h5v2H3zM19 14h2v7h-7v-2h5z"/>',
+    bed:'<path d="M3 6h2v6h14a2 2 0 0 1 2 2v5h-2v-2H5v2H3zM7 8h5v3H7z"/>',
+    car:'<path d="M5 11l1.5-4.5A2 2 0 0 1 8.4 5h7.2a2 2 0 0 1 1.9 1.5L19 11a2 2 0 0 1 2 2v4h-2v2h-2v-2H7v2H5v-2H3v-4a2 2 0 0 1 2-2zm2.2 0h9.6l-1-3H8.2zM6.5 13.5a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4zm11 0a1.2 1.2 0 1 0 0 2.4 1.2 1.2 0 0 0 0-2.4z"/>',
+    bath:'<path d="M4 12h16v2a5 5 0 0 1-4 4.9V21h-2v-2h-4v2H8v-2.1A5 5 0 0 1 4 14zM6 4a2 2 0 0 1 2 2v1H6V6H5v5H3V6a2 2 0 0 1 2-2z"/>',
+    heart:'<path d="M12 21s-7.5-4.6-9.5-9.2C1.2 8.6 3.3 5 6.8 5c2 0 3.4 1 4.2 2.3h2C13.8 6 15.2 5 17.2 5c3.5 0 5.6 3.6 4.3 6.8C19.5 16.4 12 21 12 21z"/>',
+    pin:'<path d="M12 2a7 7 0 0 1 7 7c0 5-7 13-7 13S5 14 5 9a7 7 0 0 1 7-7zm0 4.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5z"/>',
+    chat:'<path d="M12 3C6.5 3 2 6.9 2 11.7c0 2.5 1.2 4.7 3.2 6.3L4 22l4.6-2.3c1 .3 2.2.5 3.4.5 5.5 0 10-3.9 10-8.6S17.5 3 12 3z"/>',
+    menu:'<path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/>',
+    share:'<path d="M18 16a3 3 0 0 0-2.4 1.2l-6.7-3.4a3 3 0 0 0 0-1.6l6.7-3.4A3 3 0 1 0 15 7l-6.7 3.4a3 3 0 1 0 0 3.2L15 17a3 3 0 1 0 3-1z"/>',
+  };
+  const ic = (k, s = 18) => `<svg width="${s}" height="${s}" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${I[k]}</svg>`;
+  const pub = () => S.data.imoveis.filter(i => i.publicar && ["Disponível","Reservado"].includes(i.status));
+  const isLote = i => ["Lote","Terreno"].includes(i.tipo);
+  const finOf = (i, pref) => pref && (i.finalidade||"").includes(pref) ? pref : (i.finalidade||"").includes("Venda") ? "Venda" : "Locação";
+  const priceLine = (i, pref) => { const f = finOf(i, pref); const v = f === "Venda" ? i.valorVenda : i.valorAluguel; return v ? `${money(v)}${f === "Locação" ? "<small>/mês</small>" : ""}` : "Consulte"; };
+  const cardTitle = i => `${i.tipo || "Imóvel"} ${finOf(i, S.sf.fin) === "Locação" ? "para alugar" : "à venda"}${i.bairro ? " · " + i.bairro : ""}`;
+  const cfg = () => S.cfg || {};
+  const flash = k => S.sflash && S.sflash.k === k && S.sflash.h === location.hash ? `<p class="smsg ${S.sflash.cls}" role="status">${esc(S.sflash.t)}</p>` : "";
+
+  function header(){
+    const n = fav.size;
+    return `<header class="shead"><div class="swrap shbar">
+      <a href="#vitrine" class="slogo" aria-label="Início">${logoImgs("")}</a>
+      <button class="sburger" type="button" data-sact="menu" aria-label="Abrir menu">${ic("menu",24)}</button>
+      <nav class="snav" id="snav">
+        <a href="#vitrine-comprar">Comprar</a><a href="#vitrine-alugar">Alugar</a><a href="#vitrine-lotes">Loteamentos</a>
+        <a href="#vitrine-anunciar">Anunciar imóvel</a><a href="#vitrine-sobre">Sobre</a><a href="#vitrine-contato">Contato</a>
+        <a href="#vitrine-favoritos" class="sfavlink">${ic("heart",16)} Favoritos <span class="sbadge">${n}</span></a>
+        ${S.internal ? `<a href="#painel" class="sbtn sbtn-dark">Área do corretor</a>` : ""}
+      </nav></div></header>`;
+  }
+  function footer(){
+    const c = cfg();
+    return `<footer class="sfoot"><div class="swrap sfgrid">
+      <div class="sfabout">${logoImgs("")}<p>Venda e locação de casas, apartamentos e lotes em Parnaíba e região.</p><p class="mono">CRECI ${esc(c.creci || "0476-PJ")}</p></div>
+      <div><h4>Imóveis</h4><a href="#vitrine-comprar">Imóveis à venda</a><a href="#vitrine-alugar">Imóveis para alugar</a><a href="#vitrine-lotes">Loteamentos</a><a href="#vitrine-favoritos">Favoritos</a></div>
+      <div><h4>Proprietário</h4><a href="#vitrine-anunciar">Anunciar para venda</a><a href="#vitrine-anunciar">Anunciar para aluguel</a><a href="#vitrine-anunciar">Avaliação do imóvel</a></div>
+      <div><h4>Atendimento</h4>${c.whatsapp ? `<p>WhatsApp <b class="mono">${esc(c.whatsapp)}</b></p>` : ""}${c.telefone ? `<p>Telefone <b class="mono">${esc(c.telefone)}</b></p>` : ""}${c.email ? `<p>${esc(c.email)}</p>` : ""}${c.endereco ? `<p>${esc(c.endereco)}</p>` : ""}${!c.whatsapp && !c.telefone && !c.email && !c.endereco ? `<p>${S.internal ? "Preencha os contatos em Dados da imobiliária." : "Fale com a nossa equipe."}</p>` : ""}<a href="#vitrine-contato">Fale conosco</a></div>
+    </div><div class="swrap sfbase">© ${new Date().getFullYear()} ${esc(c.nome || "M2 Imóveis e Loteamentos")}${S.internal && S.canWrite ? ` · <button class="linkbtn" data-act="cfg">Dados da imobiliária</button>` : ""}</div></footer>
+    ${c.whatsapp ? `<div class="swa" title="WhatsApp ${esc(c.whatsapp)}">${ic("chat",22)}<span>${esc(c.whatsapp)}</span></div>` : ""}`;
+  }
+  function card(i){
+    const fotos = i.fotos || []; const f = fotos[0];
+    return `<article class="scard"><div class="sph" data-sid="${i.id}" data-k="0">
+      ${f ? `<img src="${photoUrl(f)}" alt="${esc(i.titulo)}" loading="lazy">` : `<div class="snoph">${esc(i.tipo || "Imóvel")}</div>`}
+      ${fotos.length > 1 ? `<button class="sarr l" data-car="-1" aria-label="Foto anterior">‹</button><button class="sarr r" data-car="1" aria-label="Próxima foto">›</button><span class="scount">1/${fotos.length}</span>` : ""}
+      <button class="sheart ${fav.has(i.id) ? "on" : ""}" data-fav="${i.id}" aria-label="Favoritar">${ic("heart",18)}</button>
+      ${i.exemplo && f ? `<span class="silus">Foto ilustrativa</span>` : ""}${i.destaque ? `<span class="sdest">Destaque</span>` : ""}</div>
+      <a class="sbody" href="#imovel-${i.id}"><span class="sloc">${ic("pin",14)} ${esc([i.loteamento || i.bairro, i.cidade].filter(Boolean).join(" | ") || "Parnaíba")}</span><span class="scod">Cód. ${esc(i.codigo)}</span>
+      <h3>${esc(cardTitle(i))}</h3><p class="stit">${esc(i.titulo)}</p><div class="sprice">${priceLine(i, S.sf.fin)}</div>
+      <div class="sfeat">${i.area ? `<span>${ic("area",15)} ${i.area} m²</span>` : ""}${i.quartos ? `<span>${ic("bed",15)} ${i.quartos} quarto${i.quartos>1?"s":""}</span>` : ""}${i.vagas ? `<span>${ic("car",15)} ${i.vagas} vaga${i.vagas>1?"s":""}</span>` : ""}</div></a></article>`;
+  }
+  function searchBox(){
+    const sf = S.sf, all = pub(); const bairros = [...new Set(all.map(i => i.bairro).filter(Boolean))].sort();
+    const tipos = sf.lote ? ["Lote","Terreno"] : [...new Set(all.filter(i => !isLote(i)).map(i => i.tipo).filter(Boolean))].sort();
+    const faixas = sf.fin === "Locação" ? [800,1200,1500,2000,3000,5000] : [150000,200000,300000,400000,500000,700000,1000000];
+    return `<form class="ssearch" id="ssearch">
+      <div class="stabs" role="tablist">${[["Venda","Comprar"],["Locação","Alugar"],["Lote","Loteamentos"]].map(([k,l]) => `<button type="button" role="tab" data-stab="${k}" aria-selected="${(k==="Lote") ? sf.lote : (!sf.lote && sf.fin===k)}">${l}</button>`).join("")}</div>
+      <div class="sfields">
+        <label>Tipo<select id="s_tipo"><option value="">Todos</option>${tipos.map(t => `<option ${sf.tipo===t?"selected":""}>${esc(t)}</option>`).join("")}</select></label>
+        <label>Bairro<select id="s_bairro"><option value="">Todos os bairros</option>${bairros.map(b => `<option ${sf.bairro===b?"selected":""}>${esc(b)}</option>`).join("")}</select></label>
+        ${sf.lote ? "" : `<div class="sq"><span>Quartos</span><div>${[1,2,3,4].map(n => `<button type="button" data-sq="${n}" aria-pressed="${sf.qmin===n}">${n}${n===4?"+":""}</button>`).join("")}</div></div>`}
+        <label>Valor até<select id="s_pmax"><option value="">Qualquer valor</option>${faixas.map(v => `<option value="${v}" ${String(sf.pmax)===String(v)?"selected":""}>${money(v)}</option>`).join("")}</select></label>
+      </div>
+      <input type="search" id="s_q" placeholder="Ou escreva: casa 3/4 com piscina até 500 mil" value="${esc(sf.q)}">
+      <button class="sbtn sbtn-gold" type="submit">Buscar imóveis</button></form>`;
+  }
+  function filtered(){
+    const sf = S.sf;
+    let L = pub().filter(i => sf.lote ? isLote(i) : (!isLote(i) && (i.finalidade||"").includes(sf.fin)))
+      .filter(i => (!sf.tipo || i.tipo === sf.tipo) && (!sf.bairro || i.bairro === sf.bairro) && (!sf.qmin || n0(i.quartos) >= sf.qmin) && (!sf.vmin || n0(i.vagas) >= sf.vmin));
+    const pk = i => sf.fin === "Locação" && !sf.lote ? n0(i.valorAluguel) : n0(i.valorVenda);
+    if (sf.pmax) L = L.filter(i => pk(i) > 0 && pk(i) <= +sf.pmax);
+    let note = "";
+    if (sf.q.trim()) { const r = SMART.run(L, sf.q); L = r.res; note = r.note; }
+    if (sf.ord === "menor") L.sort((a,b) => pk(a) - pk(b)); else if (sf.ord === "maior") L.sort((a,b) => pk(b) - pk(a));
+    else if (!sf.q.trim()) L.sort((a,b) => (b.destaque?1:0) - (a.destaque?1:0) || (b.codigo||"").localeCompare(a.codigo||""));
+    return {L, note};
+  }
+
+  function home(){
+    const all = pub(); const c = cfg();
+    const heroImg = (all.find(i => i.destaque && (i.fotos||[])[0]) || all.find(i => (i.fotos||[])[0]) || {}).fotos?.[0];
+    const dest = all.filter(i => (i.finalidade||"").includes(S.dtab) && !isLote(i)).sort((a,b) => (b.destaque?1:0)-(a.destaque?1:0) || (b.codigo||"").localeCompare(a.codigo||"")).slice(0, 8);
+    const byB = {}; all.forEach(i => { if (!i.bairro) return; const b = byB[i.bairro] || (byB[i.bairro] = {n:0, min:Infinity}); b.n++; const p = n0(i.valorVenda) || Infinity; b.min = Math.min(b.min, p); });
+    const bairros = Object.entries(byB).sort((a,b) => b[1].n - a[1].n).slice(0, 12);
+    return `<section class="shero" style="${heroImg ? `--hero:url('${photoUrl(heroImg)}')` : ""}"><div class="swrap shgrid">
+        <div class="shtxt"><h1>${esc(c.slogan || "Encontre seu imóvel em Parnaíba com a M2")}</h1><p>Casas, apartamentos e lotes para comprar ou alugar, com atendimento de quem conhece a cidade.</p></div>
+        ${searchBox()}</div></section>
+      <section class="ssec"><div class="swrap"><div class="shd"><h2>Imóveis em destaque</h2>
+        <div class="spills">${[["Venda","Comprar"],["Locação","Alugar"]].map(([k,l]) => `<button type="button" data-dtab="${k}" aria-pressed="${S.dtab===k}">${l}</button>`).join("")}</div></div>
+        ${dest.length ? `<div class="sgrid">${dest.map(card).join("")}</div><div class="smore"><a class="sbtn sbtn-line" href="#vitrine-${S.dtab==="Venda"?"comprar":"alugar"}">Ver todos os imóveis ${S.dtab==="Venda"?"à venda":"para alugar"}</a></div>` : `<p class="sempty">Nenhum imóvel ${S.dtab==="Venda"?"à venda":"para alugar"} publicado no momento.</p>`}</div></section>
+      <section class="ssec salt"><div class="swrap"><h2 class="sc">Por que anunciar e comprar com a M2</h2><div class="sdif">
+        ${[["Conhecemos Parnaíba","Bairros, loteamentos e preços da região: indicamos o imóvel certo para o seu momento."],["Visita no seu horário","Agende pelo site e um corretor confirma com você antes da visita."],["Documentação sem dor de cabeça","Acompanhamos contrato, escritura e financiamento do começo ao fim."],["Loteamentos","Lotes em loteamentos da região, com informações de quadra e lote."]].map(([t,d]) => `<div><h3>${t}</h3><p>${d}</p></div>`).join("")}</div></div></section>
+      <section class="ssec"><div class="swrap scta"><div><h2>Quer vender ou alugar seu imóvel?</h2><p>Anuncie com a M2 e receba uma avaliação gratuita do valor de mercado.</p></div><a class="sbtn sbtn-gold" href="#vitrine-anunciar">Anunciar meu imóvel</a></div></section>
+      ${bairros.length ? `<section class="ssec"><div class="swrap"><h2 class="sc">Bairros em destaque</h2><div class="sbairros">${bairros.map(([b,v]) => `<button type="button" data-sbairro="${esc(b)}"><b>${esc(b)}</b><span>${v.n} imóve${v.n>1?"is":"l"}${v.min<Infinity ? ` · a partir de ${money(v.min)}` : ""}</span></button>`).join("")}</div></div></section>` : ""}
+      <section class="ssec salt"><div class="swrap"><h2 class="sc">Mais opções</h2><div class="slinks">
+        <a href="#vitrine-comprar" data-slink="Casa">Casas à venda em Parnaíba</a><a href="#vitrine-comprar" data-slink="Apartamento">Apartamentos à venda</a><a href="#vitrine-alugar" data-slink="">Imóveis para alugar</a><a href="#vitrine-lotes" data-slink="">Lotes e terrenos</a><a href="#vitrine-comprar" data-slink="Casa em condomínio">Casas em condomínio</a></div></div></section>`;
+  }
+  function listing(){
+    const sf = S.sf; const {L, note} = filtered();
+    const title = sf.lote ? "Lotes e terrenos" : sf.fin === "Locação" ? "Imóveis para alugar" : "Imóveis à venda";
+    return `<div class="swrap sbread"><a href="#vitrine">Início</a> › ${title}</div>
+      <div class="swrap slist"><aside class="sfilt"><details open><summary>Filtros</summary>${searchBox()}
+        <label class="sord">Vagas<select id="s_vmin"><option value="0">Qualquer</option>${[1,2,3].map(n => `<option value="${n}" ${sf.vmin===n?"selected":""}>${n}+</option>`).join("")}</select></label></details></aside>
+      <div class="sres"><div class="sreshd"><h1>${title} em Parnaíba</h1><span>${L.length} imóve${L.length===1?"l":"is"}</span>
+        <label class="sord">Ordenar<select id="s_ord"><option value="rec" ${sf.ord==="rec"?"selected":""}>Destaques</option><option value="menor" ${sf.ord==="menor"?"selected":""}>Menor preço</option><option value="maior" ${sf.ord==="maior"?"selected":""}>Maior preço</option></select></label></div>
+        ${note ? `<p class="snote">${esc(note)}</p>` : ""}
+        ${L.length ? `<div class="sgrid">${L.map(card).join("")}</div>` : `<p class="sempty">Nenhum imóvel com esses filtros. Tente outro bairro ou um valor maior.</p>`}</div></div>`;
+  }
+  function detail(id){
+    const i = byId("imoveis", id);
+    if (!i || !(i.publicar || S.internal)) return `<div class="swrap ssec"><h1>Imóvel não encontrado</h1><p><a href="#vitrine-comprar">Ver imóveis disponíveis</a></p></div>`;
+    const fotos = i.fotos || []; const f = finOf(i); const m = mapInfo(i, false);
+    const sim = pub().filter(x => x.id !== i.id && x.tipo === i.tipo && (x.bairro === i.bairro || (x.finalidade||"").includes(f))).slice(0, 4);
+    const today = new Date(Date.now() + 864e5).toISOString().slice(0,10);
+    return `<div class="swrap sbread"><a href="#vitrine">Início</a> › <a href="#vitrine-${isLote(i)?"lotes":f==="Locação"?"alugar":"comprar"}">${isLote(i)?"Loteamentos":f==="Locação"?"Alugar":"Comprar"}</a> › Cód. ${esc(i.codigo)}</div>
+    <div class="swrap sdet">
+      <div class="sdmain">
+        <div class="sgal" data-gid="${i.id}" data-k="0">${fotos.length ? `<img src="${photoUrl(fotos[0])}" alt="${esc(i.titulo)}">${fotos.length>1?`<button class="sarr l" data-gal="-1" aria-label="Foto anterior">‹</button><button class="sarr r" data-gal="1" aria-label="Próxima foto">›</button><span class="scount">1/${fotos.length}</span>`:""}${i.exemplo?`<span class="silus">Foto ilustrativa</span>`:""}` : `<div class="snoph">${esc(i.tipo)}</div>`}</div>
+        ${fotos.length > 1 ? `<div class="sthumbs">${fotos.map((p,k) => `<button type="button" data-thumb="${k}" aria-label="Foto ${k+1}"><img src="${photoUrl(p)}" alt="" loading="lazy"></button>`).join("")}</div>` : ""}
+        ${i.exemplo ? `<p class="snote">Imóvel e fotos de exemplo, geradas por inteligência artificial.</p>` : ""}
+        <div class="sdhd"><div><span class="sloc">${ic("pin",14)} ${esc([i.loteamento, i.bairro, i.cidade].filter(Boolean).join(" | "))}</span><h1>${esc(cardTitle(i))}</h1><p class="stit">${esc(i.titulo)}</p><span class="scod">Cód. ${esc(i.codigo)}</span></div>
+          <div class="sdact"><button class="sbtn sbtn-line" data-fav="${i.id}">${ic("heart",16)} ${fav.has(i.id) ? "Favoritado" : "Favoritar"}</button><button class="sbtn sbtn-line" data-sact="share">${ic("share",16)} Compartilhar</button></div></div>
+        <div class="sfeat big">${i.area ? `<span>${ic("area",20)}<b>${i.area} m²</b>área</span>` : ""}${i.quartos ? `<span>${ic("bed",20)}<b>${i.quartos}</b>quartos</span>` : ""}${i.suites ? `<span>${ic("bed",20)}<b>${i.suites}</b>suíte${i.suites>1?"s":""}</span>` : ""}${i.banheiros ? `<span>${ic("bath",20)}<b>${i.banheiros}</b>banheiros</span>` : ""}${i.vagas ? `<span>${ic("car",20)}<b>${i.vagas}</b>vagas</span>` : ""}${i.quadra||i.lote ? `<span>${ic("area",20)}<b>Qd ${esc(i.quadra||"—")} · Lt ${esc(i.lote||"—")}</b>lote</span>` : ""}</div>
+        ${i.descricao ? `<h2>Sobre o imóvel</h2><p class="sdesc">${esc(i.descricao)}</p>` : ""}
+        <h2>Localização</h2><div class="maploc"><div class="t"><b>${esc([i.loteamento, i.bairro, i.cidade].filter(Boolean).join(", "))}</b><small>${m.exact ? "Ponto exato no mapa" : "Região aproximada"}</small></div><div class="acts"><a class="btn pri sm" href="${m.sat}" target="_blank" rel="noopener">Ver em satélite</a><a class="btn sm" href="${m.map}" target="_blank" rel="noopener">Google Maps</a></div></div>
+      </div>
+      <aside class="sdside">
+        <div class="sbox"><span class="lbl">${f === "Locação" ? "Aluguel" : "Venda"}</span><div class="sprice big">${priceLine(i, f)}</div>
+          ${(i.finalidade||"").includes("Venda") && (i.finalidade||"").includes("Locação") ? `<p>${f==="Venda" ? `Aluguel: ${money(i.valorAluguel)}/mês` : `Venda: ${money(i.valorVenda)}`}</p>` : ""}
+          <dl class="smini">${i.condominio ? `<div><dt>Condomínio</dt><dd>${money(i.condominio)}/mês</dd></div>` : ""}${i.iptu ? `<div><dt>IPTU</dt><dd>${money(i.iptu)}/ano</dd></div>` : ""}</dl></div>
+        <form class="sbox sform" data-sform="visita" data-im="${i.id}"><h3>Agendar visita</h3>
+          <input name="nome" placeholder="Seu nome" required aria-label="Seu nome"><input name="telefone" placeholder="Telefone / WhatsApp" required inputmode="tel" aria-label="Telefone">
+          <div class="s2"><input type="date" name="data" min="${today}" required aria-label="Data da visita"><select name="periodo" aria-label="Período"><option>Manhã</option><option>Tarde</option></select></div>
+          <button class="sbtn sbtn-gold" type="submit">Agendar visita</button>${flash("visita")}</form>
+        <form class="sbox sform" data-sform="contato" data-im="${i.id}"><h3>Fale conosco</h3>
+          <input name="nome" placeholder="Seu nome" required aria-label="Seu nome"><input name="telefone" placeholder="Telefone / WhatsApp" required inputmode="tel" aria-label="Telefone"><input name="email" type="email" placeholder="E-mail (opcional)" aria-label="E-mail">
+          <textarea name="msg" rows="3" aria-label="Mensagem">Olá! Tenho interesse no imóvel ${esc(i.codigo)}.</textarea>
+          <button class="sbtn sbtn-dark" type="submit">Enviar mensagem</button>${flash("contato")}</form>
+      </aside></div>
+    ${sim.length ? `<section class="ssec"><div class="swrap"><h2>Imóveis parecidos</h2><div class="sgrid">${sim.map(card).join("")}</div></div></section>` : ""}`;
+  }
+  function anunciar(){
+    const bairros = [...new Set(S.data.imoveis.map(i => i.bairro).filter(Boolean))].sort();
+    return `<div class="swrap sbread"><a href="#vitrine">Início</a> › Anunciar imóvel</div>
+    <div class="swrap spage"><div><h1>Anuncie seu imóvel com a M2</h1><p>Conte um pouco sobre o imóvel. Um corretor entra em contato para combinar a avaliação gratuita e as fotos.</p>
+      <ol class="ssteps"><li><b>Você envia os dados</b>Leva menos de dois minutos.</li><li><b>Avaliação gratuita</b>Visitamos o imóvel e sugerimos o valor de mercado.</li><li><b>Divulgação</b>Fotos profissionais e anúncio no nosso site e nos portais.</li></ol></div>
+      <form class="sbox sform" data-sform="anunciar"><h3>Dados do imóvel</h3>
+        <div class="s2"><select name="fin" aria-label="Quero"><option>Vender</option><option>Alugar</option></select><select name="tipo" aria-label="Tipo">${TIPOS.map(t => `<option>${t}</option>`).join("")}</select></div>
+        <input name="bairro" list="sbairros" placeholder="Bairro" aria-label="Bairro"><datalist id="sbairros">${bairros.map(b => `<option value="${esc(b)}">`).join("")}</datalist>
+        <input name="valor" inputmode="numeric" placeholder="Valor pretendido (opcional)" aria-label="Valor pretendido">
+        <input name="nome" placeholder="Seu nome" required aria-label="Seu nome"><input name="telefone" placeholder="Telefone / WhatsApp" required inputmode="tel" aria-label="Telefone">
+        <textarea name="msg" rows="3" placeholder="Conte mais: área, quartos, documentação…" aria-label="Mais informações"></textarea>
+        <button class="sbtn sbtn-gold" type="submit">Quero anunciar</button>${flash("anunciar")}</form></div>`;
+  }
+  function sobre(){
+    const c = cfg();
+    return `<div class="swrap sbread"><a href="#vitrine">Início</a> › Sobre</div><div class="swrap spage one"><div><h1>${esc(c.nome || "M2 Imóveis e Loteamentos")}</h1>
+      <p>Imobiliária de Parnaíba especializada em venda e locação de imóveis residenciais e em loteamentos da região. CRECI ${esc(c.creci || "0476-PJ")}.</p>
+      ${S.internal ? `<p class="snote">Texto provisório. Peça à M2 a história da empresa, os anos de mercado e a equipe para completar esta página.</p>` : ""}
+      <p><a class="sbtn sbtn-gold" href="#vitrine-contato">Fale com a gente</a></p></div></div>`;
+  }
+  function contato(){
+    const c = cfg();
+    return `<div class="swrap sbread"><a href="#vitrine">Início</a> › Contato</div><div class="swrap spage"><div><h1>Fale com a M2</h1>
+      <p>Mande sua mensagem pelo formulário${c.whatsapp ? " ou chame no WhatsApp" : ""}.</p>
+      <dl class="smini">${c.whatsapp ? `<div><dt>WhatsApp</dt><dd class="mono">${esc(c.whatsapp)}</dd></div>` : ""}${c.telefone ? `<div><dt>Telefone</dt><dd class="mono">${esc(c.telefone)}</dd></div>` : ""}${c.email ? `<div><dt>E-mail</dt><dd>${esc(c.email)}</dd></div>` : ""}${c.endereco ? `<div><dt>Endereço</dt><dd>${esc(c.endereco)}</dd></div>` : ""}</dl></div>
+      <form class="sbox sform" data-sform="contato"><h3>Envie sua mensagem</h3><input name="nome" placeholder="Seu nome" required aria-label="Seu nome"><input name="telefone" placeholder="Telefone / WhatsApp" required inputmode="tel" aria-label="Telefone"><input name="email" type="email" placeholder="E-mail (opcional)" aria-label="E-mail"><textarea name="msg" rows="4" placeholder="Como podemos ajudar?" aria-label="Mensagem"></textarea><button class="sbtn sbtn-gold" type="submit">Enviar</button>${flash("contato")}</form></div>`;
+  }
+  function favoritos(){
+    const L = S.data.imoveis.filter(i => fav.has(i.id));
+    return `<div class="swrap sbread"><a href="#vitrine">Início</a> › Favoritos</div><div class="swrap ssec" style="padding-top:8px"><h1>Seus favoritos</h1>
+      ${L.length ? `<div class="sgrid">${L.map(card).join("")}</div>` : `<p class="sempty">Toque no coração de um imóvel para guardar aqui. Os favoritos ficam salvos neste aparelho.</p>`}</div>`;
+  }
+
+  function view(){
+    const h = location.hash.slice(1);
+    let body;
+    if (h.startsWith("imovel-")) body = detail(h.slice(7));
+    else if (h === "vitrine-comprar") { S.sf.fin = "Venda"; S.sf.lote = false; body = listing(); }
+    else if (h === "vitrine-alugar") { S.sf.fin = "Locação"; S.sf.lote = false; body = listing(); }
+    else if (h === "vitrine-lotes") { S.sf.lote = true; S.sf.fin = "Venda"; body = listing(); }
+    else if (h === "vitrine-anunciar") body = anunciar();
+    else if (h === "vitrine-sobre") body = sobre();
+    else if (h === "vitrine-contato") body = contato();
+    else if (h === "vitrine-favoritos") body = favoritos();
+    else body = home();
+    return `<div class="site">${header()}<main class="smainc">${body}</main>${footer()}</div>`;
+  }
+
+  /* eventos do site */
+  function setFromForm(){ const g = id => document.getElementById(id); if (g("s_tipo")) S.sf.tipo = g("s_tipo").value; if (g("s_bairro")) S.sf.bairro = g("s_bairro").value; if (g("s_pmax")) S.sf.pmax = g("s_pmax").value; if (g("s_q")) S.sf.q = g("s_q").value; }
+  const route = () => S.sf.lote ? "vitrine-lotes" : S.sf.fin === "Locação" ? "vitrine-alugar" : "vitrine-comprar";
+  const go = h => { if (location.hash.slice(1) === h) render(); else location.hash = h; };
+  document.addEventListener("click", e => {
+    const t = e.target.closest("[data-stab],[data-sq],[data-dtab],[data-fav],[data-car],[data-gal],[data-thumb],[data-sbairro],[data-slink],[data-sact]"); if (!t) return;
+    if (t.dataset.stab) { setFromForm(); const k = t.dataset.stab; S.sf.lote = k === "Lote"; S.sf.fin = k === "Lote" ? "Venda" : k; S.sf.tipo = ""; S.sf.pmax = ""; S.sf.qmin = 0; return location.hash.startsWith("#vitrine-") ? go(route()) : render(); }
+    if (t.dataset.sq) { setFromForm(); const n = +t.dataset.sq; S.sf.qmin = S.sf.qmin === n ? 0 : n; return render(); }
+    if (t.dataset.dtab) { S.dtab = t.dataset.dtab; return render(); }
+    if (t.dataset.fav) { e.preventDefault(); const id = t.dataset.fav; fav.has(id) ? fav.delete(id) : fav.add(id); saveFav(); return render(); }
+    if (t.dataset.car) { e.preventDefault(); const box = t.closest(".sph"); const im = byId("imoveis", box.dataset.sid); const fs = im.fotos || []; let k = (+box.dataset.k + +t.dataset.car + fs.length) % fs.length; box.dataset.k = k; box.querySelector("img").src = photoUrl(fs[k]); box.querySelector(".scount").textContent = `${k+1}/${fs.length}`; return; }
+    if (t.dataset.gal || t.dataset.thumb) { const box = $(".sgal"); const im = byId("imoveis", box.dataset.gid); const fs = im.fotos || []; let k = t.dataset.thumb != null ? +t.dataset.thumb : (+box.dataset.k + +t.dataset.gal + fs.length) % fs.length; box.dataset.k = k; box.querySelector("img").src = photoUrl(fs[k]); const c = box.querySelector(".scount"); if (c) c.textContent = `${k+1}/${fs.length}`; return; }
+    if (t.dataset.sbairro) { S.sf = {...S.sf, fin:"Venda", lote:false, tipo:"", bairro:t.dataset.sbairro, q:"", qmin:0, pmax:""}; return go("vitrine-comprar"); }
+    if (t.dataset.slink != null) { S.sf = {...S.sf, tipo:t.dataset.slink, bairro:"", q:"", qmin:0, pmax:""}; return; }
+    if (t.dataset.sact === "menu") { $("#snav").classList.toggle("open"); return; }
+    if (t.dataset.sact === "share") { const u = location.href; navigator.clipboard?.writeText(u).then(() => toast("Link copiado"), () => toast(u)); return; }
+  });
+  document.addEventListener("change", e => {
+    const id = e.target.id;
+    if (["s_tipo","s_bairro","s_pmax"].includes(id) && location.hash.startsWith("#vitrine-")) { setFromForm(); render(); }
+    if (id === "s_ord") { S.sf.ord = e.target.value; render(); }
+    if (id === "s_vmin") { S.sf.vmin = +e.target.value; render(); }
+  });
+  document.addEventListener("submit", async e => {
+    if (e.target.id === "ssearch") { e.preventDefault(); setFromForm(); return go(route()); }
+    const f = e.target.closest("[data-sform]"); if (!f) return;
+    e.preventDefault();
+    const d = Object.fromEntries(new FormData(f)); const btn = f.querySelector("button[type=submit]");
+    const kind = f.dataset.sform; const im = f.dataset.im ? byId("imoveis", f.dataset.im) : null;
+    btn.disabled = true;
+    try {
+      const now = new Date().toISOString();
+      const lead = {nome: d.nome, telefone: d.telefone, email: d.email || "", origem: "Site", etapa: kind === "visita" ? "Visita agendada" : "Novo", criadoEm: now, imovelId: im ? im.id : "",
+        interesse: kind === "anunciar" ? "" : im ? (finOf(im) === "Locação" ? "Alugar" : "Comprar") : "",
+        obs: kind === "anunciar" ? `Quer ${d.fin.toLowerCase()} ${d.tipo}${d.bairro ? " no " + d.bairro : ""}${d.valor ? ", valor pretendido " + d.valor : ""}. ${d.msg || ""}` : kind === "visita" ? `Pediu visita pelo site: ${d.data} (${d.periodo}).` : (d.msg || "")};
+      const ref = await S.db.collection("leads").add(lead);
+      if (kind === "visita") await S.db.collection("visitas").add({imovelId: im.id, leadId: ref.id, data: `${d.data}T${d.periodo === "Manhã" ? "09:00" : "15:00"}`, status: "Agendada", corretor: "", feedback: "Agendada pelo site", criadoEm: now});
+      S.sflash = {k: kind, h: location.hash, cls: "ok", t: kind === "visita" ? "Pedido de visita enviado! Um corretor vai confirmar com você." : kind === "anunciar" ? "Recebemos os dados! Vamos entrar em contato para a avaliação." : "Mensagem enviada! Responderemos em breve."};
+      render(); return;
+    } catch (err) {
+      S.sflash = {k: kind, h: location.hash, cls: "bad", t: `Não foi possível enviar agora.${cfg().whatsapp ? " Chame no WhatsApp " + cfg().whatsapp + "." : " Tente novamente em instantes."}`};
+      render(); return;
+    }
+    btn.disabled = false;
+  });
+  return {view};
+})();
+
 /* ---------- Modal helpers ---------- */
 let modalClose = null;
 function openModal(html, onMount){
@@ -1062,10 +1479,13 @@ function openCfg(){
     <div class="f c3"><label for="c_nome">Nome na vitrine</label><input id="c_nome" value="${esc(c.nome||"M2 Imóveis")}"></div>
     <div class="f c3"><label for="c_creci">CRECI</label><input id="c_creci" value="${esc(c.creci||"")}"></div>
     <div class="f c3"><label for="c_wa">WhatsApp de atendimento</label><input id="c_wa" value="${esc(c.whatsapp||"")}" placeholder="(00) 00000-0000"></div>
-    <div class="f"><label for="c_slogan">Frase de apresentação</label><input id="c_slogan" value="${esc(c.slogan||"")}"></div>
+    <div class="f c3"><label for="c_tel">Telefone</label><input id="c_tel" value="${esc(c.telefone||"")}"></div>
+    <div class="f c3"><label for="c_email">E-mail</label><input id="c_email" type="email" value="${esc(c.email||"")}"></div>
+    <div class="f"><label for="c_end">Endereço</label><input id="c_end" value="${esc(c.endereco||"")}"></div>
+    <div class="f"><label for="c_slogan">Título do site</label><input id="c_slogan" value="${esc(c.slogan||"")}" placeholder="Encontre seu imóvel em Parnaíba com a M2"></div>
   </div></div><div class="mf"><div class="r"><button type="button" class="btn" data-act="close">Cancelar</button><button class="btn pri">Salvar</button></div></div></form>`, ov => {
     $("#cfgf", ov).addEventListener("submit", async e => { e.preventDefault();
-      const data = {nome:$("#c_nome").value.trim(), creci:$("#c_creci").value.trim(), whatsapp:$("#c_wa").value.trim(), slogan:$("#c_slogan").value.trim()};
+      const data = {nome:$("#c_nome").value.trim(), creci:$("#c_creci").value.trim(), whatsapp:$("#c_wa").value.trim(), slogan:$("#c_slogan").value.trim(), telefone:$("#c_tel").value.trim(), email:$("#c_email").value.trim(), endereco:$("#c_end").value.trim()};
       try { await S.db.doc("config/empresa").set(data); closeModal(); toast("Dados salvos"); } catch(err){ toast("Não foi possível salvar"); }
     });
   });
@@ -1134,6 +1554,7 @@ document.addEventListener("submit", e => {
 });
 
 document.getElementById("demoReset").addEventListener("click", e => { const b = e.currentTarget; if (b.dataset.armed) return window.M2_DEMO.reset(); b.dataset.armed = 1; b.textContent = "Confirmar: apagar minhas alterações"; });
+if (!location.hash) history.replaceState(null, "", "#vitrine");
 
 /* ---------- Boot ---------- */
 render();
