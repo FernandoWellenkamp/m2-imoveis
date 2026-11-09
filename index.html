@@ -181,7 +181,7 @@ td small{display:block;color:var(--muted)}
 .modal .mf .r{display:flex;gap:8px;margin-left:auto}
 .x{background:none;border:0;font-size:22px;line-height:1;cursor:pointer;color:var(--muted);padding:4px 8px}
 .form{display:grid;grid-template-columns:repeat(6,1fr);gap:12px 14px}
-.form .f{display:grid;gap:4px;grid-column:span 6;min-width:0}
+.form .f{display:grid;gap:4px;grid-column:span 6;min-width:0;align-content:start}
 .form .f.c2{grid-column:span 2}.form .f.c3{grid-column:span 3}.form .f.c1{grid-column:span 1}
 .form label{font-size:12px;font-weight:600;color:var(--muted)}
 .form input,.form select,.form textarea{width:100%;border:1px solid var(--line);border-radius:6px;padding:8px 10px;background:var(--surface)}
@@ -455,6 +455,13 @@ header.top,nav.bnav{display:none!important}
 .plogin p{margin:0;color:var(--muted)}
 .plogin label{display:grid;gap:4px;font-size:12px;font-weight:700;color:var(--muted)}
 .plock{width:56px;height:56px;border-radius:14px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center}
+.pw{position:relative;display:block}
+.pw input{padding-right:44px!important;width:100%}
+.pweye{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--muted);cursor:pointer;padding:6px;border-radius:6px;display:grid;place-items:center}
+.pweye:hover,.pweye[aria-pressed="true"]{color:var(--accent)}
+.form .bad{border-color:var(--bad)!important;box-shadow:0 0 0 3px var(--bad-bg)}
+.ferr{color:var(--bad);font-weight:600;font-size:12.5px}
+#ferr{background:var(--bad-bg);color:var(--bad)!important;padding:10px 12px;border-radius:6px;font-weight:600}
 .phint{font-size:13px;background:var(--sunk);padding:10px 12px;border-radius:8px}
 @media (max-width:860px){
   .portal{grid-template-columns:1fr}
@@ -1472,7 +1479,7 @@ Object.assign(SCHEMAS, {
     {k:"obs", l:"Observações", t:"area"},
   ]},
   usuarios: { one:"usuário", fields:[
-    {k:"nome", l:"Nome", req:1, c:3},
+    {k:"nome", l:"Nome", req:1, c:3, up:1},
     {k:"usuario", l:"Usuário (login)", req:1, c:3},
     {k:"senha", l:"Senha", t:"password", c:3},
     {k:"perfil", l:"Perfil", t:"select", o:["Administrador","Corretor","Atendimento"], c:3, def:"Corretor"},
@@ -1500,8 +1507,9 @@ const PICON = {
 function badgeFor(id){
   const D = S.data;
   const n = id === "mensagens" ? D.mensagens.filter(m => !m.lida).length : id === "interessados" ? D.leads.filter(l => (l.etapa||"Novo") === "Novo").length
-    : id === "captacao" ? D.captacoes.filter(c => (c.status||"Novo contato") === "Novo contato").length : id === "fichas" ? D.fichas.filter(f => (f.status||"Em análise") === "Em análise").length : 0;
-  return n ? `<span class="pbadge">${n}</span>` : "";
+    : id === "captacao" ? D.captacoes.filter(c => (c.status||"Novo contato") === "Novo contato").length : id === "fichas" ? D.fichas.filter(f => !["Aprovada","Reprovada"].includes(f.status)).length : 0;
+  const tip = {mensagens:`${n} mensage${n>1?"ns":"m"} não lida${n>1?"s":""}`, interessados:`${n} lead${n>1?"s":""} novo${n>1?"s":""}, ainda sem contato`, captacao:`${n} captaç${n>1?"ões":"ão"} em novo contato`, fichas:`${n} ficha${n>1?"s":""} aguardando análise ou documentos`}[id];
+  return n ? `<span class="pbadge" title="${tip}" aria-label="${tip}">${n}</span>` : "";
 }
 function portalLayout(v, content){
   const titles = Object.fromEntries(PNAV.flatMap(g => g.items));
@@ -1521,18 +1529,18 @@ function vAcesso(){
     <div class="plock"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3h2v12H5V10zm2 0h6V7a3 3 0 0 0-6 0zm3 4a1.5 1.5 0 0 0-1 2.6V19h2v-2.4a1.5 1.5 0 0 0-1-2.6z"/></svg></div>
     <h1>Área administrativa</h1><p>Acesso exclusivo da equipe M2. Entre com seu usuário e senha.</p>
     ${!S.internal ? `<p class="smsg bad">Esta conta não tem permissão para acessar a área administrativa.</p>` : `
-    <label>Usuário<input id="lg_u" name="username" autocomplete="username" required></label>
-    <label>Senha<input id="lg_p" name="password" type="password" autocomplete="current-password" required></label>
+    <label>Usuário<input id="lg_u" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required></label>
+    <label>Senha<span class="pw"><input id="lg_p" name="password" type="password" autocomplete="current-password" required><button type="button" class="pweye" data-pw aria-label="Mostrar senha" title="Mostrar senha"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></button></span></label>
     <button class="sbtn sbtn-dark" type="submit">Entrar</button>
     <p class="smsg bad" id="lg_err" hidden></p>
     ${semUsuarios ? `<p class="phint">Primeiro acesso: usuário <b class="mono">admin</b> e senha <b class="mono">m2admin</b>. Depois cadastre a equipe em Cadastro interno.</p>` : ""}`}
   </form></div>`;
 }
 async function doLogin(u, p){
-  u = (u||"").trim().toLowerCase();
+  u = norm(u).replace(/\s+/g, "");
   const users = S.data.usuarios;
   if (!users.length) { if (u === "admin" && p === "m2admin") return {nome:"Administrador", perfil:"Administrador", padrao:true}; return null; }
-  const x = users.find(z => (z.usuario||"").toLowerCase() === u && z.ativo !== false);
+  const x = users.find(z => norm(z.usuario).replace(/\s+/g, "") === u && z.ativo !== false);
   if (!x || !x.senhaHash || x.senhaHash !== await sha(p)) return null;
   return {id:x.id, nome:x.nome, perfil:x.perfil || "Corretor"};
 }
@@ -1588,7 +1596,7 @@ function vFichas(){
   S.ff = S.ff || "";
   const F = [...S.data.fichas].sort((a,b) => (b.criadoEm||"").localeCompare(a.criadoEm||"")).filter(f => !S.ff || (f.status||"Em análise") === S.ff);
   const sp = {"Em análise":"info","Pendente de documentos":"warn","Aprovada":"ok","Reprovada":"bad"};
-  return `<div class="head"><div><h1>Fichas cadastrais</h1><p>${S.data.fichas.length} fichas · ${S.data.fichas.filter(f=>(f.status||"Em análise")==="Em análise").length} em análise</p></div>${addBtn("fichas","Ficha")}</div>
+  return `<div class="head"><div><h1>Fichas cadastrais</h1><p>${S.data.fichas.length} ficha${S.data.fichas.length===1?"":"s"}${FICHA_ST.map(st => { const n = S.data.fichas.filter(f => (f.status||"Em análise") === st).length; return n ? ` · ${n} ${st.toLowerCase()}` : ""; }).join("")}</p></div>${addBtn("fichas","Ficha")}</div>
   <div class="filters"><select id="ffst"><option value="">Todas as situações</option>${FICHA_ST.map(s => `<option ${S.ff===s?"selected":""}>${s}</option>`).join("")}</select></div>
   ${!S.data.fichas.length ? emptyBox("Nenhuma ficha", "Inclua a ficha cadastral de inquilinos, compradores, fiadores e proprietários, com os documentos entregues.", "fichas", "Ficha") :
   `<div class="tbl"><table><thead><tr><th>Cliente</th><th>Tipo</th><th>Imóvel</th><th>Renda</th><th>Documentos</th><th>Situação</th><th>Data</th></tr></thead><tbody>
@@ -1619,6 +1627,11 @@ document.addEventListener("click", async e => {
 document.addEventListener("change", e => {
   if (e.target.dataset.cst) return S.db.collection("captacoes").doc(e.target.dataset.cst).update({status: e.target.value}).catch(() => toast("Não foi possível mudar a situação"));
   if (e.target.id === "ffst") { S.ff = e.target.value; render(); }
+});
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-pw]"); if (!b) return;
+  const inp = b.parentElement.querySelector("input"); const show = inp.type === "password";
+  inp.type = show ? "text" : "password"; b.setAttribute("aria-pressed", show); b.setAttribute("aria-label", show ? "Ocultar senha" : "Mostrar senha"); b.title = b.getAttribute("aria-label"); inp.focus();
 });
 document.addEventListener("submit", async e => {
   if (e.target.id !== "loginf") return;
@@ -1706,13 +1719,13 @@ function fieldHtml(f, d){
     case "ref": { const opts = [...S.data[f.ref]].sort((a,b)=>refLabel(f.ref,a).localeCompare(refLabel(f.ref,b)));
       return `<div class="${cls}">${lab}<select id="${id}" name="${f.k}" ${req}><option value="">${f.req?"Escolha…":"— nenhum —"}</option>${opts.map(o=>`<option value="${o.id}" ${o.id===v?"selected":""}>${esc(refLabel(f.ref,o))}</option>`).join("")}</select></div>`; }
     case "area": return `<div class="${cls}">${lab}<textarea id="${id}" name="${f.k}" ${req}>${esc(v)}</textarea></div>`;
-    case "password": return `<div class="${cls}">${lab}<input type="password" id="${id}" name="${f.k}" autocomplete="new-password" placeholder="${d.senhaHash ? "Deixe em branco para manter" : "Defina uma senha"}"></div>`;
+    case "password": return `<div class="${cls}"><label for="${id}">${f.l}${d.senhaHash ? "" : " *"}</label><span class="pw"><input type="password" id="${id}" name="${f.k}" autocomplete="new-password" placeholder="${d.senhaHash ? "Deixe em branco para manter" : "Mínimo de 6 caracteres"}"><button type="button" class="pweye" data-pw aria-label="Mostrar senha" title="Mostrar senha"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></button></span></div><div class="${cls}"><label for="${id}2">Confirmar senha${d.senhaHash ? "" : " *"}</label><span class="pw"><input type="password" id="${id}2" name="${f.k}2" autocomplete="new-password" placeholder="Digite a senha de novo"><button type="button" class="pweye" data-pw aria-label="Mostrar senha" title="Mostrar senha"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></button></span></div>`;
     case "bool": return `<div class="${cls}"><label class="chk"><input type="checkbox" id="${id}" name="${f.k}" ${v?"checked":""}> ${f.l}</label></div>`;
     case "num": return `<div class="${cls}">${lab}<input type="number" step="any" min="0" inputmode="decimal" id="${id}" name="${f.k}" value="${esc(v)}" ${req}></div>`;
     case "date": return `<div class="${cls}">${lab}<input type="date" id="${id}" name="${f.k}" value="${esc(v)}" ${req}></div>`;
     case "datetime": return `<div class="${cls}">${lab}<input type="datetime-local" id="${id}" name="${f.k}" value="${esc(v)}" ${req}></div>`;
     case "photos": return `<div class="${cls}"><label>${f.l}</label>${S.assets ? `<div class="photos" id="photos"></div><input type="file" id="fileIn" accept="image/*" multiple hidden><small style="color:var(--muted)">A primeira foto é a capa. Clique em × para remover.</small>` : `<small style="color:var(--muted)">Envio de fotos disponível só para quem pode editar esta página.</small>`}</div>`;
-    default: return `<div class="${cls}">${lab}<input type="${f.t||"text"}" id="${id}" name="${f.k}" value="${esc(v)}" placeholder="${esc(f.ph||"")}" ${req}></div>`;
+    default: return `<div class="${cls}">${lab}<input type="${f.t||"text"}" id="${id}" name="${f.k}" value="${esc(v)}" placeholder="${esc(f.ph||"")}" ${f.up ? 'data-up="1" autocapitalize="characters"' : ""} ${req}></div>`;
   }
 }
 function openForm(col, d, preset){
@@ -1743,20 +1756,36 @@ function openForm(col, d, preset){
         uploading--; drawPhotos();
       }
     });
-    function showErr(err){ const p = $("#ferr", ov); p.hidden = false; p.textContent = err.code === "permission_denied" ? "Você não tem permissão para alterar o banco." : (err.message || "Não foi possível salvar. Tente de novo."); }
+    function showErr(err, field){
+      const msg = err.code === "permission_denied" ? "Você não tem permissão para alterar o banco." : (err.message || "Não foi possível salvar. Tente de novo.");
+      const p = $("#ferr", ov); p.hidden = false; p.textContent = msg;
+      if (field) { field.classList.add("bad"); const box = field.closest(".f"); if (box && !box.querySelector(".ferr")) box.insertAdjacentHTML("beforeend", `<small class="ferr" role="alert">${esc(msg)}</small>`); field.scrollIntoView({block:"center"}); field.focus(); }
+      else p.scrollIntoView({block:"center"});
+      toast(msg);
+    }
+    function clearErr(){ ov.querySelectorAll(".bad").forEach(x => x.classList.remove("bad")); ov.querySelectorAll(".ferr").forEach(x => x.remove()); $("#ferr", ov).hidden = true; }
     $("#frm", ov).addEventListener("submit", async e => {
       e.preventDefault();
+      clearErr();
       if (uploading) return showErr({message:"Aguarde o envio das fotos terminar."});
       const out = {};
       for (const f of sc.fields) { if (!f.k) continue; const el = ov.querySelector(`[name="${f.k}"]`);
         if (f.t === "photos") { out.fotos = fotos; continue; }
-        if (f.t === "password") { if (el && el.value) { if (el.value.length < 6) { el.focus(); return showErr({message:"A senha precisa ter pelo menos 6 caracteres."}); } out.senhaHash = await sha(el.value); } else if (isNew) { el && el.focus(); return showErr({message:"Defina uma senha."}); } continue; }
+        if (f.t === "password") {
+          const el2 = ov.querySelector(`[name="${f.k}2"]`); const p1 = el ? el.value : "", p2 = el2 ? el2.value : "";
+          if (!p1 && !p2) { if (isNew) return showErr({message:"Defina uma senha para o novo usuário."}, el); continue; }
+          if (p1.length < 6) return showErr({message:"A senha precisa ter pelo menos 6 caracteres."}, el);
+          if (!p2) return showErr({message:"Confirme a senha digitando-a de novo."}, el2);
+          if (p1 !== p2) return showErr({message:"As senhas não conferem. Digite a mesma senha nos dois campos."}, el2);
+          out.senhaHash = await sha(p1); continue;
+        }
         if (!el) continue;
         let v = f.t === "bool" ? el.checked : el.value.trim();
         if (f.t === "num") v = v === "" ? null : +v;
-        if (f.req && (v === "" || v == null)) { el.focus(); return showErr({message:`Preencha “${f.l}”.`}); }
+        if (f.up && typeof v === "string") v = v.toLocaleUpperCase("pt-BR");
+        if (f.req && (v === "" || v == null)) return showErr({message:`Preencha o campo “${f.l}”.`}, el);
         out[f.k] = v; }
-      if (col === "usuarios") { out.usuario = (out.usuario||"").toLowerCase().replace(/\s+/g, ""); if (S.data.usuarios.some(u => u.usuario === out.usuario && u.id !== d.id)) return showErr({message:"Já existe alguém com esse usuário."}); }
+      if (col === "usuarios") { out.usuario = norm(out.usuario).replace(/\s+/g, ""); if (S.data.usuarios.some(u => u.usuario === out.usuario && u.id !== d.id)) return showErr({message:"Já existe alguém com esse usuário. Escolha outro."}, ov.querySelector('[name="usuario"]')); }
       const btn = $("#save", ov); btn.disabled = true; btn.textContent = "Salvando…";
       try {
         if (isNew) {
@@ -1837,6 +1866,7 @@ document.addEventListener("click", e => {
   if (a === "cfg") openCfg();
 });
 document.addEventListener("input", e => {
+  if (e.target.dataset && e.target.dataset.up) { const el = e.target, a = el.selectionStart, b = el.selectionEnd; el.value = el.value.toLocaleUpperCase("pt-BR"); try { el.setSelectionRange(a, b); } catch (x) {} return; }
   const id = e.target.id;
   if (id === "lq") { S.lf.q = e.target.value; const pos = e.target.selectionStart; render(); const el = $("#lq"); el.focus(); el.setSelectionRange(pos,pos); return; }
   if (id === "vq") { S.v.q = e.target.value; const pos = e.target.selectionStart; render(); const el = $("#vq"); el.focus(); el.setSelectionRange(pos,pos); return; }
