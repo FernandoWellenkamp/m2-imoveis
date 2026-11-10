@@ -5,39 +5,121 @@
 <meta name="description" content="M2 Imóveis e Loteamentos: casas, apartamentos e lotes para comprar e alugar em Parnaíba.">
 <style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px/1.4 system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head><body>
-<script src="data.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script>
 (() => {
-  const KEY = "m2demo_v2";
-  const fresh = () => JSON.parse(JSON.stringify(window.M2_SEED));
-  let st = null; try { st = JSON.parse(localStorage.getItem(KEY)); } catch (e) {}
-  if (!st || !st.imoveis) st = fresh();
-  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) { console.warn("Não foi possível salvar neste aparelho", e); } };
-  const subs = {};
-  const snap = col => ({docs: (st[col] || []).map(d => ({id: d.id, exists: true, data: () => { const {id, ...r} = d; return r; }}))});
-  const emit = col => (subs[col] || []).forEach(cb => cb(snap(col)));
-  const rid = () => Math.random().toString(36).slice(2, 12);
-  const docRef = (col, id) => ({ id,
-    async set(data){ const arr = st[col] || (st[col] = []); const i = arr.findIndex(d => d.id === id); const nd = {id, ...data}; if (i >= 0) arr[i] = nd; else arr.push(nd); save(); emit(col); },
-    async update(data){ const arr = st[col] || []; const i = arr.findIndex(d => d.id === id); if (i < 0) throw {code: "invalid_argument", message: "Registro não encontrado"}; arr[i] = {...arr[i], ...data}; save(); emit(col); },
-    async delete(){ st[col] = (st[col] || []).filter(d => d.id !== id); save(); emit(col); },
-  });
-  const cfgSubs = [];
-  const db = {
-    collection: col => ({
-      onSnapshot(cb){ (subs[col] = subs[col] || []).push(cb); setTimeout(() => cb(snap(col)), 0); return () => {}; },
-      doc: id => docRef(col, id || rid()),
-      async add(data){ const r = docRef(col, rid()); await r.set(data); return r; },
-    }),
-    doc: () => ({
-      onSnapshot(cb){ cfgSubs.push(cb); setTimeout(() => cb({exists: true, data: () => st.config || {}}), 0); return () => {}; },
-      async set(data){ st.config = data; save(); cfgSubs.forEach(cb => cb({exists: true, data: () => st.config})); },
-    }),
+  const CFG = {
+    apiKey: ["AIza", "SyCUX45V2IAUV", "segPtR67ABPYJwTLNlAaEA"].join(""),   // chave pública do Firebase (pode ficar no site)
+    authDomain: "m2-imoveis.firebaseapp.com",
+    projectId: "m2-imoveis",
+    storageBucket: "m2-imoveis.firebasestorage.app",
+    messagingSenderId: "96300587007",
+    appId: "1:96300587007:web:9bd251f10783b19429f9ca"
   };
-  async function shrink(file){ const bm = await createImageBitmap(file); const w = Math.min(1000, bm.width), h = Math.round(bm.height * w / bm.width); const c = document.createElement("canvas"); c.width = w; c.height = h; c.getContext("2d").drawImage(bm, 0, 0, w, h); return c.toDataURL("image/jpeg", 0.7); }
-  const assets = { async upload(file){ const url = await shrink(file); return {id: url, url}; } };
-  window.claude = { use: async n => n === "db" ? db : n === "user" ? {can: () => true, isOwner: () => true} : n === "assets" ? assets : null };
-  window.M2_DEMO = { reset(){ try { localStorage.removeItem(KEY); } catch (e) {} location.reload(); } };
+  if (!window.firebase) { window.M2_FAIL = "Não foi possível carregar o Firebase. Verifique a internet e recarregue a página."; return; }
+  firebase.initializeApp(CFG);
+  const auth = firebase.auth(), fs = firebase.firestore();
+  let storage = null; try { storage = firebase.storage(); } catch (e) {}
+  const norm = s => String(s ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/\s+/g, "");
+  const clean = o => JSON.parse(JSON.stringify(o, (k, v) => v === undefined ? null : v));
+  let sess = null, staff = false;
+
+  const ready = new Promise(res => {
+    let first = true;
+    auth.onAuthStateChanged(async u => {
+      sess = null; staff = false;
+      if (u) {
+        try {
+          const d = await fs.doc("usuarios/" + u.uid).get();
+          if (d.exists && d.data().ativo !== false) { const x = d.data(); staff = true; sess = {id: u.uid, nome: x.nome || u.email, perfil: x.perfil || "Corretor", email: u.email}; }
+        } catch (e) { console.warn(e); }
+      }
+      if (first) { first = false; res(); }
+    });
+  });
+
+  const errMsg = e => ({
+    "auth/invalid-credential": "Usuário ou senha incorretos.", "auth/wrong-password": "Usuário ou senha incorretos.", "auth/user-not-found": "Usuário ou senha incorretos.",
+    "auth/invalid-email": "E-mail inválido.", "auth/too-many-requests": "Muitas tentativas. Aguarde alguns minutos e tente de novo.",
+    "auth/email-already-in-use": "Este e-mail já tem cadastro no sistema.", "auth/weak-password": "Senha fraca: use pelo menos 6 caracteres.",
+    "auth/network-request-failed": "Sem conexão com a internet.", "permission-denied": "Você não tem permissão para esta ação.",
+  }[e && e.code] || (e && e.message) || "Não foi possível concluir. Tente de novo.");
+
+  const wrapDoc = r => ({ id: r.id, get: () => r.get(), onSnapshot: (a, b) => r.onSnapshot(a, b),
+    set: d => r.set(clean(d)), update: d => r.update(clean(d)), delete: () => r.delete() });
+  const db = {
+    collection: col => { const ref = fs.collection(col); return {
+      onSnapshot: (cb, err) => (col === "imoveis" && !staff ? ref.where("publicar", "==", true) : ref).onSnapshot(cb, err),
+      doc: id => wrapDoc(id ? ref.doc(id) : ref.doc()),
+      add: async d => wrapDoc(await ref.add(clean(d))),
+    }; },
+    doc: p => wrapDoc(fs.doc(p)),
+  };
+  async function shrink(file){
+    const bm = await createImageBitmap(file); const w = Math.min(1600, bm.width), h = Math.round(bm.height * w / bm.width);
+    const c = document.createElement("canvas"); c.width = w; c.height = h; c.getContext("2d").drawImage(bm, 0, 0, w, h);
+    return await new Promise(r => c.toBlob(r, "image/jpeg", 0.82));
+  }
+  const assets = { async upload(file){
+    if (!storage) throw {message: "O envio de fotos ainda não foi ativado no Firebase (Storage)."};
+    const blob = await shrink(file); const name = "fotos/" + Date.now() + "-" + Math.random().toString(36).slice(2, 8) + ".jpg";
+    try { const r = storage.ref(name); await r.put(blob, {contentType: "image/jpeg"}); const url = await r.getDownloadURL(); return {id: url, url}; }
+    catch (e) { throw {message: e.code === "storage/unauthorized" ? "Sem permissão para enviar fotos." : (e.code || "").startsWith("storage/") ? "O envio de fotos ainda não está ativo no Firebase (Storage)." : errMsg(e)}; }
+  } };
+
+  window.M2_AUTH = {
+    session: () => sess,
+    async login(u, p){
+      u = String(u || "").trim();
+      let email = u;
+      if (!u.includes("@")) { const m = await fs.doc("logins/" + norm(u)).get().catch(() => null); if (!m || !m.exists) throw {message: "Usuário ou senha incorretos."}; email = m.data().email; }
+      let cred; try { cred = await auth.signInWithEmailAndPassword(email.trim().toLowerCase(), p); } catch (e) { throw {message: errMsg(e)}; }
+      const uid = cred.user.uid; let d = await fs.doc("usuarios/" + uid).get();
+      if (!d.exists) {
+        // primeiro administrador: só funciona para o e-mail liberado nas regras do Firestore
+        try {
+          await fs.doc("usuarios/" + uid).set({nome: "ADMINISTRADOR", usuario: "admin", email: cred.user.email, perfil: "Administrador", ativo: true, criadoEm: new Date().toISOString()});
+          await fs.doc("logins/admin").set({email: cred.user.email}).catch(() => {});
+          d = await fs.doc("usuarios/" + uid).get();
+        } catch (e) { /* não é o primeiro administrador */ }
+      }
+      if (!d.exists) { await auth.signOut(); throw {message: "Seu acesso ainda não foi liberado. Fale com o administrador."}; }
+      if (d.data().ativo === false) { await auth.signOut(); throw {message: "Seu acesso está bloqueado. Fale com o administrador."}; }
+      const x = d.data(); return {id: uid, nome: x.nome, perfil: x.perfil || "Corretor", email: cred.user.email};
+    },
+    async logout(){ await auth.signOut(); },
+    async reset(u){
+      u = String(u || "").trim(); let email = u;
+      if (!u.includes("@")) { const m = await fs.doc("logins/" + norm(u)).get().catch(() => null); if (!m || !m.exists) throw {message: "Digite o seu e-mail no campo de usuário para receber o link."}; email = m.data().email; }
+      try { await auth.sendPasswordResetEmail(email.toLowerCase()); } catch (e) { throw {message: errMsg(e)}; }
+      return email;
+    },
+    async createUser(o){
+      const email = String(o.email || "").trim().toLowerCase(); const login = norm(o.usuario);
+      const ex = await fs.doc("logins/" + login).get(); if (ex.exists) throw {message: "Já existe alguém com esse usuário. Escolha outro.", field: "usuario"};
+      const sec = firebase.apps.find(a => a.name === "sec") || firebase.initializeApp(CFG, "sec");
+      let cred; try { cred = await sec.auth().createUserWithEmailAndPassword(email, o._senha); } catch (e) { throw {message: errMsg(e), field: e.code === "auth/weak-password" ? "senha" : "email"}; }
+      const uid = cred.user.uid; await sec.auth().signOut();
+      const {_senha, senhaHash, ...rest} = o;
+      await fs.doc("usuarios/" + uid).set(clean({...rest, usuario: login, email, criadoEm: new Date().toISOString()}));
+      await fs.doc("logins/" + login).set({email});
+      return uid;
+    },
+    async updateUser(id, o, old){
+      const login = norm(o.usuario); const {_senha, senhaHash, email, ...rest} = o;
+      if (login !== old.usuario) { const ex = await fs.doc("logins/" + login).get(); if (ex.exists) throw {message: "Já existe alguém com esse usuário. Escolha outro.", field: "usuario"}; }
+      await fs.doc("usuarios/" + id).update(clean({...rest, usuario: login}));
+      if (login !== old.usuario) { await fs.doc("logins/" + login).set({email: old.email}); if (old.usuario) await fs.doc("logins/" + old.usuario).delete().catch(() => {}); }
+    },
+  };
+  window.claude = { use: async n => { await ready;
+    if (n === "db") return db;
+    if (n === "user") return {can: () => staff, isOwner: () => staff};
+    if (n === "assets") return staff ? assets : null;
+    return null; } };
 })();
 </script>
 <title>M2 Imóveis</title>
@@ -476,8 +558,6 @@ header.top,nav.bnav{display:none!important}
   .puser small{display:none}
 }
 
-.demobar{background:var(--warn-bg);color:var(--ink);font-size:13px;padding-block:8px}
-.demobar .wrap{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
 /* ---------- Celular ---------- */
 nav.bnav{display:none}
 @media (max-width:720px){
@@ -550,7 +630,6 @@ nav.bnav{display:none}
   </div>
   <div class="wrap"><nav class="tabs" id="tabs" aria-label="Seções"></nav></div>
 </header>
-<div class="demobar gut"><div class="wrap"><span><b>Versão de demonstração.</b> Pode testar à vontade: as alterações ficam salvas só neste aparelho. Imóveis, fotos e contatos são exemplos.</span><button class="btn sm" id="demoReset" type="button">Restaurar dados de exemplo</button></div></div>
 <main class="gut"><div class="wrap" id="view"></div></main>
 <nav class="bnav" id="bnav" aria-label="Seções"></nav>
 <div id="modalRoot"></div>
@@ -1484,12 +1563,12 @@ Object.assign(SCHEMAS, {
     {k:"senha", l:"Senha", t:"password", c:3},
     {k:"perfil", l:"Perfil", t:"select", o:["Administrador","Corretor","Atendimento"], c:3, def:"Corretor"},
     {k:"telefone", l:"Telefone", c:3},
-    {k:"email", l:"E-mail", t:"email", c:3},
+    {k:"email", l:"E-mail", t:"email", c:3, req: !!window.M2_AUTH},
     {k:"ativo", l:"Acesso ativo", t:"bool", def:true},
   ]},
 });
 async function sha(s){ const b = await crypto.subtle.digest("SHA-256", new TextEncoder().encode("m2:" + s)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, "0")).join(""); }
-try { S.sess = JSON.parse(sessionStorage.getItem("m2sess") || "null"); } catch (e) { S.sess = null; }
+try { S.sess = window.M2_AUTH ? null : JSON.parse(sessionStorage.getItem("m2sess") || "null"); } catch (e) { S.sess = null; }
 const setSess = s => { S.sess = s; try { s ? sessionStorage.setItem("m2sess", JSON.stringify(s)) : sessionStorage.removeItem("m2sess"); } catch (e) {} };
 const isAdmin = () => S.sess && S.sess.perfil === "Administrador";
 
@@ -1528,15 +1607,17 @@ function vAcesso(){
   return `<div class="swrap slogin"><form class="sbox sform plogin" id="loginf" autocomplete="on">
     <div class="plock"><svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true"><path d="M7 10V7a5 5 0 0 1 10 0v3h2v12H5V10zm2 0h6V7a3 3 0 0 0-6 0zm3 4a1.5 1.5 0 0 0-1 2.6V19h2v-2.4a1.5 1.5 0 0 0-1-2.6z"/></svg></div>
     <h1>Área administrativa</h1><p>Acesso exclusivo da equipe M2. Entre com seu usuário e senha.</p>
-    ${!S.internal ? `<p class="smsg bad">Esta conta não tem permissão para acessar a área administrativa.</p>` : `
-    <label>Usuário<input id="lg_u" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required></label>
+    ${!S.internal && !window.M2_AUTH ? `<p class="smsg bad">Esta conta não tem permissão para acessar a área administrativa.</p>` : `
+    <label>${window.M2_AUTH ? "Usuário ou e-mail" : "Usuário"}<input id="lg_u" name="username" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required></label>
     <label>Senha<span class="pw"><input id="lg_p" name="password" type="password" autocomplete="current-password" required><button type="button" class="pweye" data-pw aria-label="Mostrar senha" title="Mostrar senha"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></button></span></label>
     <button class="sbtn sbtn-dark" type="submit">Entrar</button>
     <p class="smsg bad" id="lg_err" hidden></p>
-    ${semUsuarios ? `<p class="phint">Primeiro acesso: usuário <b class="mono">admin</b> e senha <b class="mono">m2admin</b>. Depois cadastre a equipe em Cadastro interno.</p>` : ""}`}
+    ${window.M2_AUTH ? `<button type="button" class="linkbtn" data-act="resetpw">Esqueci minha senha</button>` : ""}
+    ${semUsuarios && !window.M2_AUTH ? `<p class="phint">Primeiro acesso: usuário <b class="mono">admin</b> e senha <b class="mono">m2admin</b>. Depois cadastre a equipe em Cadastro interno.</p>` : ""}`}
   </form></div>`;
 }
 async function doLogin(u, p){
+  if (window.M2_AUTH) return window.M2_AUTH.login(u, p);
   u = norm(u).replace(/\s+/g, "");
   const users = S.data.usuarios;
   if (!users.length) { if (u === "admin" && p === "m2admin") return {nome:"Administrador", perfil:"Administrador", padrao:true}; return null; }
@@ -1609,11 +1690,11 @@ function vCadastro(){
   if (!isAdmin()) return `<div class="emptybox"><b>Só administradores</b><span>Peça a um administrador para alterar os cadastros da equipe.</span></div>`;
   const U = [...S.data.usuarios].sort((a,b) => (a.nome||"").localeCompare(b.nome||""));
   return `<div class="head"><div><h1>Cadastro interno</h1><p>Equipe com acesso à área administrativa</p></div><div style="display:flex;gap:8px;flex-wrap:wrap">${S.canWrite ? `<button class="btn" data-act="cfg">Dados da imobiliária</button>` : ""}${addBtn("usuarios","Usuário")}</div></div>
-  ${!U.length ? emptyBox("Nenhum usuário cadastrado", "Enquanto não houver usuários, a área administrativa aceita o acesso padrão (admin / m2admin). Cadastre pelo menos um administrador para desativar esse acesso.", "usuarios", "Usuário") :
+  ${!U.length ? emptyBox("Nenhum usuário cadastrado", window.M2_AUTH ? "Cadastre a equipe que vai usar a área administrativa." : "Enquanto não houver usuários, a área administrativa aceita o acesso padrão (admin / m2admin). Cadastre pelo menos um administrador para desativar esse acesso.", "usuarios", "Usuário") :
   `<div class="tbl"><table><thead><tr><th>Nome</th><th>Usuário</th><th>Perfil</th><th>Contato</th><th>Acesso</th></tr></thead><tbody>
   ${U.map(u => `<tr data-open="usuarios" data-id="${u.id}"><td><b>${esc(u.nome)}</b></td><td class="mono">${esc(u.usuario)}</td><td>${esc(u.perfil||"Corretor")}</td><td>${esc(u.telefone||"—")}<small>${esc(u.email||"")}</small></td><td><span class="pill ${u.ativo===false?"bad":"ok"}">${u.ativo===false?"Bloqueado":"Ativo"}</span></td></tr>`).join("")}
   </tbody></table></div>`}
-  <p class="note" style="margin-top:16px">As senhas ficam guardadas de forma embaralhada (hash). Nesta versão de demonstração o login protege as telas, mas não substitui a segurança de um servidor próprio.</p>`;
+  <p class="note" style="margin-top:16px">${window.M2_AUTH ? "O login e as senhas ficam no sistema de autenticação do Google (Firebase). Para trocar a senha, cada pessoa usa “Esqueci minha senha” na tela de login." : "As senhas ficam guardadas de forma embaralhada (hash). Nesta versão de demonstração o login protege as telas, mas não substitui a segurança de um servidor próprio."}</p>`;
 }
 
 /* eventos do portal */
@@ -1636,8 +1717,11 @@ document.addEventListener("click", e => {
 document.addEventListener("submit", async e => {
   if (e.target.id !== "loginf") return;
   e.preventDefault();
-  const err = $("#lg_err"); const s = await doLogin($("#lg_u").value, $("#lg_p").value);
-  if (!s) { err.hidden = false; err.textContent = "Usuário ou senha incorretos."; return; }
+  const err = $("#lg_err"); const btn = e.target.querySelector("button[type=submit]"); err.hidden = true; btn.disabled = true; btn.textContent = "Entrando…";
+  let s = null; try { s = await doLogin($("#lg_u").value, $("#lg_p").value); } catch (x) { err.hidden = false; err.textContent = x.message || "Não foi possível entrar."; }
+  btn.disabled = false; btn.textContent = "Entrar";
+  if (!s) { if (err.hidden) { err.hidden = false; err.textContent = "Usuário ou senha incorretos."; } return; }
+  if (window.M2_AUTH) { history.replaceState(null, "", "#painel"); location.reload(); return; }
   setSess(s); location.hash = "painel";
 });
 
@@ -1719,7 +1803,7 @@ function fieldHtml(f, d){
     case "ref": { const opts = [...S.data[f.ref]].sort((a,b)=>refLabel(f.ref,a).localeCompare(refLabel(f.ref,b)));
       return `<div class="${cls}">${lab}<select id="${id}" name="${f.k}" ${req}><option value="">${f.req?"Escolha…":"— nenhum —"}</option>${opts.map(o=>`<option value="${o.id}" ${o.id===v?"selected":""}>${esc(refLabel(f.ref,o))}</option>`).join("")}</select></div>`; }
     case "area": return `<div class="${cls}">${lab}<textarea id="${id}" name="${f.k}" ${req}>${esc(v)}</textarea></div>`;
-    case "password": return `<div class="${cls}"><label for="${id}">${f.l}${d.senhaHash ? "" : " *"}</label><span class="pw"><input type="password" id="${id}" name="${f.k}" autocomplete="new-password" placeholder="${d.senhaHash ? "Deixe em branco para manter" : "Mínimo de 6 caracteres"}"><button type="button" class="pweye" data-pw aria-label="Mostrar senha" title="Mostrar senha"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></button></span></div><div class="${cls}"><label for="${id}2">Confirmar senha${d.senhaHash ? "" : " *"}</label><span class="pw"><input type="password" id="${id}2" name="${f.k}2" autocomplete="new-password" placeholder="Digite a senha de novo"><button type="button" class="pweye" data-pw aria-label="Mostrar senha" title="Mostrar senha"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></button></span></div>`;
+    case "password": if (window.M2_AUTH && d.id) return `<div class="f"><p class="note" style="margin:0">Para trocar a senha, a pessoa usa “Esqueci minha senha” na tela de login. O e-mail de acesso não pode ser alterado aqui.</p></div>`; return `<div class="${cls}"><label for="${id}">${f.l}${d.senhaHash ? "" : " *"}</label><span class="pw"><input type="password" id="${id}" name="${f.k}" autocomplete="new-password" placeholder="${d.senhaHash ? "Deixe em branco para manter" : "Mínimo de 6 caracteres"}"><button type="button" class="pweye" data-pw aria-label="Mostrar senha" title="Mostrar senha"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></button></span></div><div class="${cls}"><label for="${id}2">Confirmar senha${d.senhaHash ? "" : " *"}</label><span class="pw"><input type="password" id="${id}2" name="${f.k}2" autocomplete="new-password" placeholder="Digite a senha de novo"><button type="button" class="pweye" data-pw aria-label="Mostrar senha" title="Mostrar senha"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></button></span></div>`;
     case "bool": return `<div class="${cls}"><label class="chk"><input type="checkbox" id="${id}" name="${f.k}" ${v?"checked":""}> ${f.l}</label></div>`;
     case "num": return `<div class="${cls}">${lab}<input type="number" step="any" min="0" inputmode="decimal" id="${id}" name="${f.k}" value="${esc(v)}" ${req}></div>`;
     case "date": return `<div class="${cls}">${lab}<input type="date" id="${id}" name="${f.k}" value="${esc(v)}" ${req}></div>`;
@@ -1777,7 +1861,7 @@ function openForm(col, d, preset){
           if (p1.length < 6) return showErr({message:"A senha precisa ter pelo menos 6 caracteres."}, el);
           if (!p2) return showErr({message:"Confirme a senha digitando-a de novo."}, el2);
           if (p1 !== p2) return showErr({message:"As senhas não conferem. Digite a mesma senha nos dois campos."}, el2);
-          out.senhaHash = await sha(p1); continue;
+          if (window.M2_AUTH) out._senha = p1; else out.senhaHash = await sha(p1); continue;
         }
         if (!el) continue;
         let v = f.t === "bool" ? el.checked : el.value.trim();
@@ -1788,6 +1872,10 @@ function openForm(col, d, preset){
       if (col === "usuarios") { out.usuario = norm(out.usuario).replace(/\s+/g, ""); if (S.data.usuarios.some(u => u.usuario === out.usuario && u.id !== d.id)) return showErr({message:"Já existe alguém com esse usuário. Escolha outro."}, ov.querySelector('[name="usuario"]')); }
       const btn = $("#save", ov); btn.disabled = true; btn.textContent = "Salvando…";
       try {
+        if (col === "usuarios" && window.M2_AUTH) {
+          if (isNew) await window.M2_AUTH.createUser(out); else await window.M2_AUTH.updateUser(d.id, out, d);
+          closeModal(); toast(isNew ? "Usuário cadastrado" : "Alterações salvas"); return;
+        }
         if (isNew) {
           out.criadoEm = new Date().toISOString();
           if (col === "imoveis") out.codigo = nextCode();
@@ -1797,7 +1885,7 @@ function openForm(col, d, preset){
         }
         if (col === "contratos" && out.status === "Ativo") { const im = byId("imoveis", out.imovelId); if (im && im.status !== "Alugado") await S.db.collection("imoveis").doc(im.id).update({status:"Alugado"}); }
         closeModal(); toast(isNew ? "Cadastrado" : "Alterações salvas");
-      } catch (err) { btn.disabled = false; btn.textContent = isNew ? "Cadastrar" : "Salvar"; showErr(err); }
+      } catch (err) { btn.disabled = false; btn.textContent = isNew ? "Cadastrar" : "Salvar"; showErr(err, err && err.field ? ov.querySelector(`[name="${err.field}"]`) : null); }
     });
   });
 }
@@ -1859,7 +1947,10 @@ document.addEventListener("click", e => {
   if (t.dataset.vfin !== undefined) { S.v.fin = t.dataset.vfin; return render(); }
   const a = t.dataset.act;
   if (a === "close") closeModal();
-  if (a === "logout") { setSess(null); location.hash = "vitrine"; return; }
+  if (a === "logout") { if (window.M2_AUTH) { window.M2_AUTH.logout().then(() => { history.replaceState(null, "", "#vitrine"); location.reload(); }); return; } setSess(null); location.hash = "vitrine"; return; }
+  if (a === "resetpw") { const u = $("#lg_u").value; const err = $("#lg_err"); err.hidden = false;
+    if (!u.trim()) { err.textContent = "Digite seu usuário ou e-mail e clique de novo em “Esqueci minha senha”."; $("#lg_u").focus(); return; }
+    window.M2_AUTH.reset(u).then(em => { err.className = "smsg ok"; err.textContent = `Enviamos um link para ${em}. Abra o e-mail para criar uma nova senha.`; }, x => { err.className = "smsg bad"; err.textContent = x.message; }); return; }
   if (a === "pmenu") { $("#pside")?.classList.toggle("open"); $(".portal")?.classList.toggle("menu-open"); return; }
   if (a === "seed") { t.disabled = true; seed().catch(()=>toast("Não foi possível carregar os exemplos")); }
   if (a === "unseed") { t.disabled = true; unseed(); }
@@ -1890,13 +1981,11 @@ document.addEventListener("submit", e => {
   if (location.hash === "#imoveis") render(); else location.hash = "imoveis";
 });
 
-document.getElementById("demoReset").addEventListener("click", e => { const b = e.currentTarget; if (b.dataset.armed) return window.M2_DEMO.reset(); b.dataset.armed = 1; b.textContent = "Confirmar: apagar minhas alterações"; });
-if (!location.hash) history.replaceState(null, "", "#vitrine");
-
 /* ---------- Boot ---------- */
 render();
 (async () => {
   const claude = window.claude;
+  if (window.M2_FAIL) { $("#view").innerHTML = `<div class="emptybox" style="margin:40px 16px"><b>Sistema fora do ar</b><span>${esc(window.M2_FAIL)}</span></div>`; return; }
   if (!claude?.use) { $("#view").innerHTML = `<div class="emptybox"><b>Banco de dados indisponível</b><span>Abra esta página pelo link do Claude para acessar os imóveis da M2.</span></div>`; return; }
   const [db, user, assets] = await Promise.all([claude.use("db"), claude.use("user"), claude.use("assets")]);
   S.db = db; S.user = user; S.assets = assets;
@@ -1904,6 +1993,7 @@ render();
   const cw = user ? user.can("data.write") : null;
   S.canWrite = cw !== false;
   S.internal = S.canWrite;
+  if (window.M2_AUTH) S.sess = window.M2_AUTH.session();
   const cols = Object.keys(S.data);
   let pending = new Set(cols);
   let rT;
