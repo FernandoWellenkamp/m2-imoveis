@@ -125,18 +125,18 @@
       const G = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-ai.js`);
       const app = A.getApps().find(a => a.name === "ai") || A.initializeApp(CFG, "ai");
       const ai = G.getAI(app, {backend: new G.GoogleAIBackend()});
-      aiModel = m => G.getGenerativeModel(ai, {model: m, generationConfig: {responseMimeType: "application/json", temperature: 0}});
+      aiModel = m => G.getGenerativeModel(ai, {model: m, generationConfig: {responseMimeType: "application/json", temperature: 0}}, {timeout: 75000});
     }
     const content = [prompt, ...parts.map(p => ({inlineData: {mimeType: p.mime, data: p.data}}))];
     let last;
-    for (const m of ["gemini-flash-latest", "gemini-2.5-flash"]) {
+    for (const m of ["gemini-flash-lite-latest", "gemini-flash-latest"]) {
       try { const r = await aiModel(m).generateContent(content); return r.response.text(); }
       catch (e) { last = e; const t = String(e && e.message || e);
         if (/firebasevertexai|Get started|API has not been used|is disabled/i.test(t)) throw {message: "A leitura automática ainda não foi ativada no Firebase (AI Logic). A ficha foi só anexada."};
         if (/quota|429|exhausted/i.test(t)) throw {message: "Limite de leituras gratuitas atingido por agora. Tente de novo em alguns minutos."};
-        if (!/not found|404|not supported/i.test(t)) break; }
+        if (!/not found|404|not supported|no longer available|503|deadline|unavailable|overloaded|timed? ?out|abort/i.test(t)) break; }
     }
-    throw {message: "Não foi possível ler a ficha agora (" + String(last && last.message || last).slice(0, 120) + ")."};
+    throw {message: /503|deadline|unavailable|overloaded|timed? ?out|abort/i.test(String(last && last.message || last)) ? "O serviço de leitura está ocupado agora. A ficha foi anexada; tente “Ler ficha” de novo em alguns minutos." : "Não foi possível ler a ficha agora (" + String(last && last.message || last).slice(0, 120) + ")."};
   } };
   window.claude = { use: async n => { await ready;
     if (n === "db") return db;
@@ -284,7 +284,7 @@ td small{display:block;color:var(--muted)}
 .modal .mb{padding:20px}
 .modal:has(.mb){max-height:calc(100dvh - 48px);display:flex;flex-direction:column}
 .modal:has(.mb) form{display:flex;flex-direction:column;min-height:0;flex:1}
-.modal .mb{overflow-y:auto;min-height:0;flex:1;overscroll-behavior:contain;scrollbar-width:auto;scrollbar-color:var(--muted) var(--sunk)}
+.modal .mb{overflow-y:auto;overflow-x:hidden;min-height:0;flex:1;overscroll-behavior:contain;scrollbar-width:auto;scrollbar-color:var(--muted) var(--sunk)}
 .modal .mb::-webkit-scrollbar{width:12px}
 .modal .mb::-webkit-scrollbar-track{background:var(--sunk);border-radius:6px}
 .modal .mb::-webkit-scrollbar-thumb{background:var(--muted);border-radius:6px;border:3px solid var(--sunk)}
@@ -292,7 +292,7 @@ td small{display:block;color:var(--muted)}
 .modal .mf{display:flex;justify-content:space-between;gap:8px;padding:14px 20px;border-top:1px solid var(--line);flex-wrap:wrap}
 .modal .mf .r{display:flex;gap:8px;margin-left:auto}
 .x{background:none;border:0;font-size:22px;line-height:1;cursor:pointer;color:var(--muted);padding:4px 8px}
-.form{display:grid;grid-template-columns:repeat(6,1fr);gap:12px 14px}
+.form{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px 14px}
 .form .f{display:grid;gap:4px;grid-column:span 6;min-width:0;align-content:start}
 .form .f.c2{grid-column:span 2}.form .f.c3{grid-column:span 3}.form .f.c1{grid-column:span 1}.form .f.c4{grid-column:span 4}
 .form label{font-size:12px;font-weight:600;color:var(--muted)}
