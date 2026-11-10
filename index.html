@@ -58,16 +58,53 @@
     }; },
     doc: p => wrapDoc(fs.doc(p)),
   };
-  async function shrink(file){
-    const bm = await createImageBitmap(file); const w = Math.min(1600, bm.width), h = Math.round(bm.height * w / bm.width);
-    const c = document.createElement("canvas"); c.width = w; c.height = h; c.getContext("2d").drawImage(bm, 0, 0, w, h);
-    return await new Promise(r => c.toBlob(r, "image/jpeg", 0.82));
+  // Fotos dos imóveis: guardadas no próprio Firestore (coleção "fotos", base64), porque o Storage exige o plano Blaze.
+  // Cada foto vira um documento de no máximo ~450 KB (limite do Firestore: 1 MB por documento).
+  // Tratamento automático da foto: vira na posição certa (foto de celular), reduz em etapas (fica mais nítida
+  // que reduzir de uma vez), ajusta níveis (tira o "lavado"), dá um leve realce de cor e contraste e um toque de nitidez.
+  function scaleTo(src, w, h){
+    let cur = src, cw = src.width, ch = src.height;
+    while (cw / 2 >= w) { cw = Math.round(cw / 2); ch = Math.round(ch / 2); const c = document.createElement("canvas"); c.width = cw; c.height = ch; const g = c.getContext("2d"); g.imageSmoothingQuality = "high"; g.drawImage(cur, 0, 0, cw, ch); cur = c; }
+    const c = document.createElement("canvas"); c.width = w; c.height = h; const g = c.getContext("2d", {willReadFrequently: true}); g.imageSmoothingQuality = "high";
+    g.filter = "saturate(1.08) contrast(1.04)"; g.drawImage(cur, 0, 0, w, h); g.filter = "none";
+    return c;
   }
+  function enhance(c){
+    const g = c.getContext("2d", {willReadFrequently: true}), w = c.width, h = c.height;
+    const img = g.getImageData(0, 0, w, h), p = img.data, n = w * h;
+    // níveis automáticos (corta 0,5% de cada ponta, sem exagerar)
+    const hist = new Uint32Array(256);
+    for (let i = 0; i < p.length; i += 4) hist[(p[i] * 77 + p[i+1] * 150 + p[i+2] * 29) >> 8]++;
+    let lo = 0, hi = 255, acc = 0; const cut = n * 0.005;
+    while (lo < 255 && (acc += hist[lo]) < cut) lo++;
+    acc = 0; while (hi > 0 && (acc += hist[hi]) < cut) hi--;
+    lo = Math.min(lo, 24); hi = Math.max(hi, 230);
+    const lut = new Uint8ClampedArray(256); for (let v = 0; v < 256; v++) lut[v] = hi > lo ? (v - lo) * 255 / (hi - lo) : v;
+    for (let i = 0; i < p.length; i += 4) { p[i] = lut[p[i]]; p[i+1] = lut[p[i+1]]; p[i+2] = lut[p[i+2]]; }
+    // nitidez leve (máscara de nitidez 3x3)
+    const src = new Uint8ClampedArray(p), k = 0.35, W = w * 4;
+    for (let y = 1; y < h - 1; y++) for (let x = 1; x < w - 1; x++) { const i = y * W + x * 4;
+      for (let ch = 0; ch < 3; ch++) { const j = i + ch; p[j] = src[j] + k * (4 * src[j] - src[j-4] - src[j+4] - src[j-W] - src[j+W]); } }
+    g.putImageData(img, 0, 0);
+    return c;
+  }
+  async function shrink(file, maxW, maxBytes){
+    let bm; try { bm = await createImageBitmap(file, {imageOrientation: "from-image"}); } catch (e) { try { bm = await createImageBitmap(file); } catch (e2) { throw {message: `“${file.name}” não é uma imagem que o navegador consiga abrir. Use JPG ou PNG (no iPhone, fotos HEIC podem precisar ser enviadas como JPG).`}; } }
+    let w = Math.min(maxW, bm.width), blob;
+    for (let tries = 0; tries < 8; tries++) {
+      const h = Math.round(bm.height * w / bm.width);
+      const c = enhance(scaleTo(bm, w, h));
+      for (const q of [0.86, 0.78, 0.7]) { blob = await new Promise(r => c.toBlob(r, "image/jpeg", q)); if (blob.size <= maxBytes) return blob; }
+      w = Math.round(w * 0.85);
+    }
+    return blob;
+  }
+  const toB64 = blob => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1]); r.onerror = rej; r.readAsDataURL(blob); });
   const assets = { async upload(file){
-    if (!storage) throw {message: "O envio de fotos ainda não foi ativado no Firebase (Storage)."};
-    const blob = await shrink(file); const name = "fotos/" + Date.now() + "-" + Math.random().toString(36).slice(2, 8) + ".jpg";
-    try { const r = storage.ref(name); await r.put(blob, {contentType: "image/jpeg"}); const url = await r.getDownloadURL(); return {id: url, url}; }
-    catch (e) { throw {message: e.code === "storage/unauthorized" ? "Sem permissão para enviar fotos." : (e.code || "").startsWith("storage/") ? "O envio de fotos ainda não está ativo no Firebase (Storage)." : errMsg(e)}; }
+    const blob = await shrink(file, 1400, 450 * 1024);
+    if (blob.size > 700 * 1024) throw {message: `Não consegui reduzir “${file.name}” o suficiente. Tente outra foto.`};
+    try { const r = await fs.collection("fotos").add({data: await toB64(blob), mime: "image/jpeg", tamanho: blob.size, nome: file.name, criadoEm: new Date().toISOString()}); return {id: "fs:" + r.id}; }
+    catch (e) { throw {message: errMsg(e)}; }
   } };
 
   window.M2_AUTH = {
@@ -704,7 +741,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
-const M2_VERSAO = "1.12 · 10/11/2026";
+const M2_VERSAO = "1.13 · 10/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
@@ -840,7 +877,26 @@ const SIM = (() => {
   }
   return {url};
 })();
-const photoUrl = id => String(id).startsWith("sim:") ? SIM.url(id) : /^(data:|fotos\/|https?:)/.test(String(id)) ? id : "/_blob/" + id;
+/* Fotos guardadas no banco ("fs:<id>", coleção "fotos"): a <img> nasce com uma imagem vazia marcada com #fs:<id>
+   e é trocada pela foto assim que ela chega do banco. Cada foto é buscada uma vez só por página. */
+const FSPH = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7#fs:";
+const fsCache = new Map();
+function fsFoto(id){
+  if (!fsCache.has(id)) fsCache.set(id, S.db.collection("fotos").doc(id).get().then(s => s.exists ? `data:${s.data().mime || "image/jpeg"};base64,${s.data().data}` : null).catch(() => null));
+  return fsCache.get(id);
+}
+const fsDone = new Map();
+function fsFill(img){
+  const m = (img.getAttribute("src") || "").split("#fs:")[1]; if (!m) return;
+  fsFoto(m).then(u => { fsDone.set(m, u); if (u && (img.getAttribute("src") || "").endsWith("#fs:" + m)) img.src = u; else if (!u) img.classList.add("semfoto"); });
+}
+new MutationObserver(ms => { for (const x of ms) {
+  if (x.type === "attributes") { fsFill(x.target); continue; }
+  x.addedNodes.forEach(n => { if (n.nodeType !== 1) return; if (n.tagName === "IMG") fsFill(n); else n.querySelectorAll && n.querySelectorAll('img[src*="#fs:"]').forEach(fsFill); });
+} }).observe(document.documentElement, {childList: true, subtree: true, attributes: true, attributeFilter: ["src"]});
+const photoUrl = id => { id = String(id);
+  if (id.startsWith("fs:")) { const k = id.slice(3); return fsDone.get(k) || FSPH + k; }
+  return id.startsWith("sim:") ? SIM.url(id) : /^(data:|fotos\/|https?:)/.test(id) ? id : "/_blob/" + id; };
 
 /* ---------- Schemas ---------- */
 const TIPOS = ["Apartamento","Casa","Casa em condomínio","Cobertura","Lote","Terreno","Sala comercial","Loja","Galpão","Fazenda/Sítio"];
