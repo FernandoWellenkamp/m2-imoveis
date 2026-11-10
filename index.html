@@ -588,6 +588,9 @@ header.top,nav.bnav{display:none!important}
 .anxadd{display:flex;gap:8px;flex-wrap:wrap}
 .anxadd select{flex:1 1 200px;min-width:0}
 .anxview{z-index:70}
+.shero.shcity{--hero:url("https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Caminho_no_Porto_das_Barcas.jpg/1920px-Caminho_no_Porto_das_Barcas.jpg");background:linear-gradient(90deg,rgba(10,22,52,.82) 0%,rgba(10,22,52,.5) 42%,rgba(10,22,52,.1) 100%),var(--hero) center 60%/cover no-repeat,#1d3b85}
+@media (max-width:860px){.shero.shcity{--hero:url("https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Caminho_no_Porto_das_Barcas.jpg/960px-Caminho_no_Porto_das_Barcas.jpg");background:linear-gradient(180deg,rgba(10,22,52,.55),rgba(10,22,52,.85)),var(--hero) center/cover no-repeat,#1d3b85}}
+.shcred{position:absolute;right:10px;bottom:6px;font-size:10.5px;color:rgba(255,255,255,.7);text-shadow:0 1px 2px rgba(0,0,0,.6)}
 .pver{margin-top:auto;padding:16px 10px 0;font-size:11.5px;color:#7f8fb3;letter-spacing:.02em}
 .sver{opacity:.7;font-size:12px}
 .scaninfo{margin:0 0 14px;padding:10px 12px;border-radius:8px;font-size:13.5px;background:var(--sunk);color:var(--ink)}
@@ -693,7 +696,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
-const M2_VERSAO = "1.10 · 09/11/2026";
+const M2_VERSAO = "1.11 · 09/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
@@ -1398,9 +1401,9 @@ const SITE = (() => {
     const dest = all.filter(i => (i.finalidade||"").includes(S.dtab) && !isLote(i)).sort((a,b) => (b.destaque?1:0)-(a.destaque?1:0) || (b.codigo||"").localeCompare(a.codigo||"")).slice(0, 8);
     const byB = {}; all.forEach(i => { if (!i.bairro) return; const b = byB[i.bairro] || (byB[i.bairro] = {n:0, min:Infinity}); b.n++; const p = n0(i.valorVenda) || Infinity; b.min = Math.min(b.min, p); });
     const bairros = Object.entries(byB).sort((a,b) => b[1].n - a[1].n).slice(0, 12);
-    return `<section class="shero" style="${heroImg ? `--hero:url('${photoUrl(heroImg)}')` : ""}"><div class="swrap shgrid">
+    return `<section class="shero shcity"><div class="swrap shgrid">
         <div class="shtxt"><h1>${esc(c.slogan || "Encontre seu imóvel em Parnaíba com a M2")}</h1><p>Casas, apartamentos e lotes para comprar ou alugar, com atendimento de quem conhece a cidade.</p></div>
-        ${searchBox()}</div></section>
+        ${searchBox()}</div><small class="shcred">Foto: Porto das Barcas, Parnaíba — Raniel Souza / Wikimedia Commons (CC BY 4.0)</small></section>
       <section class="ssec"><div class="swrap"><div class="shd"><h2>Imóveis em destaque</h2>
         <div class="spills">${[["Venda","Comprar"],["Locação","Alugar"]].map(([k,l]) => `<button type="button" data-dtab="${k}" aria-pressed="${S.dtab===k}">${l}</button>`).join("")}</div></div>
         ${dest.length ? `<div class="sgrid">${dest.map(card).join("")}</div><div class="smore"><a class="sbtn sbtn-line" href="#vitrine-${S.dtab==="Venda"?"comprar":"alugar"}">Ver todos os imóveis ${S.dtab==="Venda"?"à venda":"para alugar"}</a></div>` : `<p class="sempty">Nenhum imóvel ${S.dtab==="Venda"?"à venda":"para alugar"} publicado no momento.</p>`}</div></section>
