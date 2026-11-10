@@ -109,7 +109,13 @@
       return uid;
     },
     async updateUser(id, o, old){
-      const login = norm(o.usuario); const {_senha, senhaHash, email, ...rest} = o;
+      const login = norm(o.usuario); const {_senha, _senhaAtual, senhaHash, email, ...rest} = o;
+      if (_senha) {
+        const u = auth.currentUser; if (!u || u.uid !== id) throw {message: "Só a própria pessoa pode trocar a senha por aqui."};
+        try { await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email, _senhaAtual)); }
+        catch (e) { throw {message: /invalid-credential|wrong-password/.test(e.code || "") ? "A senha atual está incorreta." : errMsg(e), field: "senhaAtual"}; }
+        try { await u.updatePassword(_senha); } catch (e) { throw {message: errMsg(e), field: "senha"}; }
+      }
       if (login !== old.usuario) { const ex = await fs.doc("logins/" + login).get(); if (ex.exists) throw {message: "Já existe alguém com esse usuário. Escolha outro.", field: "usuario"}; }
       await fs.doc("usuarios/" + id).update(clean({...rest, usuario: login}));
       if (login !== old.usuario) { await fs.doc("logins/" + login).set({email: old.email}); if (old.usuario) await fs.doc("logins/" + old.usuario).delete().catch(() => {}); }
@@ -1901,7 +1907,13 @@ function fieldHtml(f, d){
     case "ref": { const opts = [...S.data[f.ref]].sort((a,b)=>refLabel(f.ref,a).localeCompare(refLabel(f.ref,b)));
       return `<div class="${cls}">${lab}<select id="${id}" name="${f.k}" ${req}><option value="">${f.req?"Escolha…":"— nenhum —"}</option>${opts.map(o=>`<option value="${o.id}" ${o.id===v?"selected":""}>${esc(refLabel(f.ref,o))}</option>`).join("")}</select></div>`; }
     case "area": return `<div class="${cls}">${lab}<textarea id="${id}" name="${f.k}" ${req}>${esc(v)}</textarea></div>`;
-    case "password": if (window.M2_AUTH && d.id) return `<div class="f"><p class="note" style="margin:0">Para trocar a senha, a pessoa usa “Esqueci minha senha” na tela de login. O e-mail de acesso não pode ser alterado aqui.</p></div>`; return `<div class="${cls}"><label for="${id}">${f.l}${d.senhaHash ? "" : " *"}</label><span class="pw"><input type="password" id="${id}" name="${f.k}" autocomplete="new-password" placeholder="${d.senhaHash ? "Deixe em branco para manter" : "Mínimo de 6 caracteres"}"><button type="button" class="pweye" data-pw aria-label="Mostrar senha" title="Mostrar senha"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></button></span></div><div class="${cls}"><label for="${id}2">Confirmar senha${d.senhaHash ? "" : " *"}</label><span class="pw"><input type="password" id="${id}2" name="${f.k}2" autocomplete="new-password" placeholder="Digite a senha de novo"><button type="button" class="pweye" data-pw aria-label="Mostrar senha" title="Mostrar senha"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></button></span></div>`;
+    case "password": {
+      const eye = `<button type="button" class="pweye" data-pw aria-label="Mostrar senha" title="Mostrar senha"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></button>`;
+      const pwIn = (iid, nm, lbl, ph, ac) => `<div class="${cls}"><label for="${iid}">${lbl}</label><span class="pw"><input type="password" id="${iid}" name="${nm}" autocomplete="${ac||"new-password"}" placeholder="${ph}">${eye}</span></div>`;
+      const own = window.M2_AUTH && d.id && S.sess && S.sess.id === d.id;
+      if (window.M2_AUTH && d.id && !own) return `<div class="f"><p class="note" style="margin:0 0 8px">A senha de outra pessoa não aparece nem pode ser digitada aqui. Envie para ela um link de troca de senha no e-mail cadastrado.</p><button type="button" class="btn" id="pwlink">📧 Enviar link para trocar a senha</button></div>`;
+      if (own) return `<div class="f"><p class="note" style="margin:0">Este é o seu cadastro. Para trocar a sua senha, digite a senha atual e a nova. Deixe em branco para manter.</p></div>` + pwIn(id + "a", f.k + "Atual", "Senha atual", "Sua senha de hoje", "current-password") + pwIn(id, f.k, "Nova senha", "Mínimo de 6 caracteres") + pwIn(id + "2", f.k + "2", "Confirmar nova senha", "Digite a nova senha de novo");
+      return pwIn(id, f.k, f.l + (d.senhaHash ? "" : " *"), d.senhaHash ? "Deixe em branco para manter" : "Mínimo de 6 caracteres") + pwIn(id + "2", f.k + "2", "Confirmar senha" + (d.senhaHash ? "" : " *"), "Digite a senha de novo"); }
     case "bool": return `<div class="${cls}"><label class="chk"><input type="checkbox" id="${id}" name="${f.k}" ${v?"checked":""}> ${f.l}</label></div>`;
     case "num": return `<div class="${cls}">${lab}<input type="number" step="any" min="0" inputmode="decimal" id="${id}" name="${f.k}" value="${esc(v)}" ${req}></div>`;
     case "date": return `<div class="${cls}">${lab}<input type="date" id="${id}" name="${f.k}" value="${esc(v)}" ${req}></div>`;
@@ -2001,6 +2013,7 @@ Regras: nomes de pessoas em MAIÚSCULAS; CPF, RG e telefones como estão escrito
       const rm = e.target.dataset.rmph; if (rm !== undefined) { fotos.splice(+rm,1); drawPhotos(); }
       if (e.target.closest("#anxBtn")) $("#anxIn", ov).click();
       if (e.target.closest("#scanBtn")) $("#scanIn", ov).click();
+      if (e.target.closest("#pwlink")) { const b = e.target.closest("#pwlink"); b.disabled = true; window.M2_AUTH.reset(d.email || d.usuario).then(em => { b.textContent = "✔ Link enviado para " + em; toast("Link de troca de senha enviado"); }).catch(err => { b.disabled = false; toast(err.message || "Não foi possível enviar o link"); }); }
       const ar = e.target.closest("[data-anxrm]"); if (ar) { const a = anexos.splice(+ar.dataset.anxrm, 1)[0]; drawAnexos(); if (a && a.id) S.db.collection("anexos").doc(a.id).delete().catch(() => {}); }
       const ao = e.target.closest("[data-anxopen]"); if (ao) openAnexo(anexos[+ao.dataset.anxopen]);
       if (e.target.id === "del") {
@@ -2039,6 +2052,7 @@ Regras: nomes de pessoas em MAIÚSCULAS; CPF, RG e telefones como estão escrito
           if (p1.length < 6) return showErr({message:"A senha precisa ter pelo menos 6 caracteres."}, el);
           if (!p2) return showErr({message:"Confirme a senha digitando-a de novo."}, el2);
           if (p1 !== p2) return showErr({message:"As senhas não conferem. Digite a mesma senha nos dois campos."}, el2);
+          if (window.M2_AUTH && !isNew) { const ea = ov.querySelector(`[name="${f.k}Atual"]`); if (!ea) continue; if (!ea.value) return showErr({message:"Digite a sua senha atual para trocar a senha."}, ea); out._senhaAtual = ea.value; }
           if (window.M2_AUTH) out._senha = p1; else out.senhaHash = await sha(p1); continue;
         }
         if (!el) continue;
