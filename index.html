@@ -588,6 +588,8 @@ header.top,nav.bnav{display:none!important}
 .anxadd{display:flex;gap:8px;flex-wrap:wrap}
 .anxadd select{flex:1 1 200px;min-width:0}
 .anxview{z-index:70}
+.pver{margin-top:auto;padding:16px 10px 0;font-size:11.5px;color:#7f8fb3;letter-spacing:.02em}
+.sver{opacity:.7;font-size:12px}
 .scaninfo{margin:0 0 14px;padding:10px 12px;border-radius:8px;font-size:13.5px;background:var(--sunk);color:var(--ink)}
 .scaninfo.ok{background:var(--ok-bg,#e6f4ea);color:var(--ink)}
 .scaninfo.warn{background:var(--warn-bg);color:var(--ink)}
@@ -691,6 +693,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
+const M2_VERSAO = "1.10 · 09/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
@@ -1347,7 +1350,7 @@ const SITE = (() => {
       <div><h4>Imóveis</h4><a href="#vitrine-comprar">Imóveis à venda</a><a href="#vitrine-alugar">Imóveis para alugar</a><a href="#vitrine-lotes">Loteamentos</a><a href="#vitrine-favoritos">Favoritos</a></div>
       <div><h4>Proprietário</h4><a href="#vitrine-anunciar">Anunciar para venda</a><a href="#vitrine-anunciar">Anunciar para aluguel</a><a href="#vitrine-anunciar">Avaliação do imóvel</a></div>
       <div><h4>Atendimento</h4>${c.whatsapp ? `<p>WhatsApp <b class="mono">${esc(c.whatsapp)}</b></p>` : ""}${c.telefone ? `<p>Telefone <b class="mono">${esc(c.telefone)}</b></p>` : ""}${c.email ? `<p>${esc(c.email)}</p>` : ""}${c.endereco ? `<p>${esc(c.endereco)}</p>` : ""}${!c.whatsapp && !c.telefone && !c.email && !c.endereco ? `<p>${S.internal ? "Preencha os contatos em Dados da imobiliária." : "Fale com a nossa equipe."}</p>` : ""}<a href="#vitrine-contato">Fale conosco</a></div>
-    </div><div class="swrap sfbase">© ${new Date().getFullYear()} ${esc(c.nome || "M2 Imóveis e Loteamentos")}${S.internal && S.canWrite ? ` · <button class="linkbtn" data-act="cfg">Dados da imobiliária</button>` : ""}</div></footer>
+    </div><div class="swrap sfbase">© ${new Date().getFullYear()} ${esc(c.nome || "M2 Imóveis e Loteamentos")}${S.internal && S.canWrite ? ` · <button class="linkbtn" data-act="cfg">Dados da imobiliária</button>` : ""} · <span class="sver">versão ${M2_VERSAO}</span></div></footer>
     ${c.whatsapp ? `<div class="swa" title="WhatsApp ${esc(c.whatsapp)}">${ic("chat",22)}<span>${esc(c.whatsapp)}</span></div>` : ""}`;
   }
   function card(i){
@@ -1698,7 +1701,7 @@ function portalLayout(v, content){
   const titles = Object.fromEntries(PNAV.flatMap(g => g.items));
   const nav = PNAV.map(g => (g.g === "Administração" && !isAdmin()) ? "" : `<div class="pgrp"><span>${g.g}</span>${g.items.map(([id,l]) => `<a href="#${id}" ${id===v?'aria-current="page"':""}><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${PICON[id]||""}</svg>${l}${badgeFor(id)}</a>`).join("")}</div>`).join("");
   return `<div class="portal"><aside class="pside" id="pside"><a class="plogo" href="#painel">${logoImgs("")}</a><nav class="pnav" aria-label="Portal">${nav}
-      <div class="pgrp"><a href="#vitrine"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${PICON.site}</svg>Ver site</a><button type="button" data-act="logout"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${PICON.sair}</svg>Sair</button></div></nav></aside>
+      <div class="pgrp"><a href="#vitrine"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${PICON.site}</svg>Ver site</a><button type="button" data-act="logout"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${PICON.sair}</svg>Sair</button></div></nav><div class="pver" title="Versão do sistema">Versão ${M2_VERSAO}</div></aside>
     <div class="pmain"><div class="ptop"><button type="button" class="pburger" data-act="pmenu" aria-label="Abrir menu"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/></svg></button>
       <span class="ptitle"><span class="pkicker">Área administrativa</span>${esc(titles[v] || "Área administrativa")}</span><span class="puser"><b>${esc(S.sess.nome)}</b><small>${esc(S.sess.perfil)}</small></span></div>
       ${S.sess.padrao ? `<div class="pwarn">Você entrou com o acesso padrão. ${isAdmin() ? `<a href="#cadastro">Cadastre os usuários da equipe</a> para trocar a senha.` : ""}</div>` : ""}
