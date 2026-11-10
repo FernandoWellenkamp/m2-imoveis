@@ -100,9 +100,12 @@
     return blob;
   }
   const toB64 = blob => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(",")[1]); r.onerror = rej; r.readAsDataURL(blob); });
-  const assets = { async upload(file){
+  const assets = { async upload(file, onStage){
+    const st = x => { try { onStage && onStage(x); } catch (e) {} };
+    st("tratando"); await new Promise(r => setTimeout(r, 30)); // deixa a mensagem aparecer antes do tratamento
     const blob = await shrink(file, 1400, 450 * 1024);
     if (blob.size > 700 * 1024) throw {message: `Não consegui reduzir “${file.name}” o suficiente. Tente outra foto.`};
+    st("enviando");
     try { const r = await fs.collection("fotos").add({data: await toB64(blob), mime: "image/jpeg", tamanho: blob.size, nome: file.name, criadoEm: new Date().toISOString()}); return {id: "fs:" + r.id}; }
     catch (e) { throw {message: errMsg(e)}; }
   } };
@@ -741,7 +744,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
-const M2_VERSAO = "1.13 · 10/11/2026";
+const M2_VERSAO = "1.14 · 10/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
@@ -2008,7 +2011,7 @@ function fieldHtml(f, d){
 }
 function openForm(col, d, preset){
   const sc = SCHEMAS[col]; const isNew = !d; d = d || {...(preset||{})};
-  let fotos = [...(d.fotos||[])]; let uploading = 0; let delArm = false;
+  let fotos = [...(d.fotos||[])]; let uploading = 0; let upMsg = ""; let delArm = false;
   let anexos = [...(d.anexos||[])];
   if (!S.canWrite) return;
   openModal(`<form id="frm" novalidate><div class="mh"><div><span class="lbl">${isNew ? "Novo cadastro" : esc(d.codigo || "Editar")}</span><h2>${isNew ? (/^(visita|mensagem|captação|ficha)$/.test(sc.one) ? "Nova " : "Novo ") + sc.one : esc(d.titulo || d.nome || d.inquilino || "Editar " + sc.one)}</h2></div><button type="button" class="x" aria-label="Fechar" data-act="close">×</button></div>
@@ -2016,7 +2019,7 @@ function openForm(col, d, preset){
     <div class="mf">${!isNew ? `<button type="button" class="btn danger" id="del">Excluir</button>` : ""}${sc.scan ? `<button type="button" class="btn scanbtn" id="scanBtn" title="Envie a ficha preenchida (PDF, JPG ou PNG) e o sistema preenche os campos para você conferir">📄 Ler ficha preenchida</button><input type="file" id="scanIn" accept="application/pdf,image/png,image/jpeg,.pdf,.png,.jpg,.jpeg" hidden>` : ""}<div class="r"><button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn pri" id="save">${isNew ? "Cadastrar" : "Salvar"}</button></div></div></form>`,
   ov => {
     const drawPhotos = () => { const box = $("#photos", ov); if (!box) return;
-      box.innerHTML = fotos.map((f,i)=>`<div class="th"><img src="${photoUrl(f)}" alt="Foto ${i+1}"><button type="button" data-rmph="${i}" aria-label="Remover foto ${i+1}">×</button></div>`).join("") + (uploading ? `<div class="add">Enviando ${uploading}…</div>` : "") + `<button type="button" class="add" id="addPh">+ Adicionar fotos</button>`; };
+      box.innerHTML = fotos.map((f,i)=>`<div class="th"><img src="${photoUrl(f)}" alt="Foto ${i+1}"><button type="button" data-rmph="${i}" aria-label="Remover foto ${i+1}">×</button></div>`).join("") + (uploading ? `<div class="add">${esc(upMsg || `Enviando ${uploading}…`)}</div>` : "") + `<button type="button" class="add" id="addPh">+ Adicionar fotos</button>`; };
     drawPhotos();
     const anxF = sc.fields.find(x => x.t === "anexos"); const ANXT = Object.fromEntries([...((anxF && anxF.docs) || DOCS), ["ficha","Ficha preenchida"], ["outro","Outro documento"]]);
     const kb = n => n >= 1048576 ? (n/1048576).toFixed(1).replace(".", ",") + " MB" : Math.max(1, Math.round(n/1024)) + " KB";
@@ -2107,11 +2110,13 @@ Regras: nomes de pessoas em MAIÚSCULAS; CPF, RG e telefones como estão escrito
     const fi = $("#fileIn", ov);
     fi && fi.addEventListener("change", async () => {
       const files = [...fi.files]; fi.value = ""; uploading += files.length; drawPhotos();
-      for (const file of files) {
-        try { const r = await S.assets.upload(file); fotos.push(r.id); }
+      const tot = files.length; let k = 0;
+      for (const file of files) { k++; const de = tot > 1 ? ` ${k} de ${tot}` : "";
+        try { const r = await S.assets.upload(file, st => { upMsg = (st === "tratando" ? "Tratando a foto" : "Enviando a foto") + de + "…"; drawPhotos(); }); fotos.push(r.id); }
         catch (err) { showErr({message: "Não foi possível enviar " + file.name + ": " + (err.message||err.code)}); }
         uploading--; drawPhotos();
       }
+      upMsg = "";
     });
     function showErr(err, field){
       const msg = err.code === "permission_denied" ? "Você não tem permissão para alterar o banco." : (err.message || "Não foi possível salvar. Tente de novo.");
