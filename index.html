@@ -587,6 +587,14 @@ header.top,nav.bnav{display:none!important}
 .anxic{font-size:10px;font-weight:800;background:var(--accent);color:var(--accent-ink);border-radius:4px;padding:2px 6px}
 .anxadd{display:flex;gap:8px;flex-wrap:wrap}
 .anxadd select{flex:1 1 200px;min-width:0}
+.refadd{display:flex;gap:8px}
+.refadd select{flex:1 1 auto;min-width:0}
+.refadd .btn{flex:0 0 auto;white-space:nowrap}
+.qadd{margin-top:8px;padding:12px;border:1px solid var(--line);border-radius:8px;background:var(--sunk);display:grid;gap:8px}
+.qadd[hidden]{display:none}
+.qadd b{font-size:13.5px}
+.qerr{color:var(--bad);font-weight:600;font-size:12.5px}
+.qadd .r{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
 .anxview{z-index:70}
 .shero.shcity{--hero:url("https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Caminho_no_Porto_das_Barcas.jpg/1920px-Caminho_no_Porto_das_Barcas.jpg");background:linear-gradient(90deg,rgba(10,22,52,.82) 0%,rgba(10,22,52,.5) 42%,rgba(10,22,52,.1) 100%),var(--hero) center 60%/cover no-repeat,#1d3b85}
 @media (max-width:860px){.shero.shcity{--hero:url("https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Caminho_no_Porto_das_Barcas.jpg/960px-Caminho_no_Porto_das_Barcas.jpg");background:linear-gradient(180deg,rgba(10,22,52,.55),rgba(10,22,52,.85)),var(--hero) center/cover no-repeat,#1d3b85}}
@@ -696,7 +704,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
-const M2_VERSAO = "1.11 · 09/11/2026";
+const M2_VERSAO = "1.12 · 10/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
@@ -853,7 +861,7 @@ const SCHEMAS = {
     {k:"finalidade", l:"Finalidade", t:"select", o:["Venda","Locação","Venda e Locação"], c:2, req:1},
     {k:"tipo", l:"Tipo", t:"select", o:TIPOS, c:2, req:1},
     {k:"status", l:"Situação", t:"select", o:STATUS_IMOVEL, c:2, def:"Disponível"},
-    {k:"proprietarioId", l:"Proprietário", t:"ref", ref:"proprietarios", c:3},
+    {k:"proprietarioId", l:"Proprietário", t:"ref", ref:"proprietarios", c:3, quick:1},
     {k:"matricula", l:"Matrícula / inscrição IPTU", c:3},
     {sec:"Localização"},
     {k:"endereco", l:"Endereço", c:3, ph:"Rua, número, complemento"},
@@ -1911,7 +1919,17 @@ function fieldHtml(f, d){
   switch (f.t) {
     case "select": return `<div class="${cls}">${lab}<select id="${id}" name="${f.k}" ${req}>${f.req&&!v?`<option value="">Escolha…</option>`:""}${f.o.map(o=>`<option ${o===v?"selected":""} value="${esc(o)}">${esc(o)||"—"}</option>`).join("")}</select></div>`;
     case "ref": { const opts = [...S.data[f.ref]].sort((a,b)=>refLabel(f.ref,a).localeCompare(refLabel(f.ref,b)));
-      return `<div class="${cls}">${lab}<select id="${id}" name="${f.k}" ${req}><option value="">${f.req?"Escolha…":"— nenhum —"}</option>${opts.map(o=>`<option value="${o.id}" ${o.id===v?"selected":""}>${esc(refLabel(f.ref,o))}</option>`).join("")}</select></div>`; }
+      const sel = `<select id="${id}" name="${f.k}" ${req}><option value="">${f.req?"Escolha…":"— nenhum —"}</option>${opts.map(o=>`<option value="${o.id}" ${o.id===v?"selected":""}>${esc(refLabel(f.ref,o))}</option>`).join("")}</select>`;
+      if (!f.quick) return `<div class="${cls}">${lab}${sel}</div>`;
+      const one = SCHEMAS[f.ref].one;
+      return `<div class="${cls}">${lab}<div class="refadd">${sel}<button type="button" class="btn" data-qadd="${f.k}" title="Cadastrar um ${one} novo sem sair desta tela">+ Novo</button></div>
+        <div class="qadd" id="qa_${f.k}" hidden><b>Novo ${one}</b>
+          <input id="qa_${f.k}_nome" placeholder="Nome completo *" aria-label="Nome do ${one}">
+          <input id="qa_${f.k}_tel" placeholder="Telefone / WhatsApp" aria-label="Telefone do ${one}">
+          <input id="qa_${f.k}_doc" placeholder="CPF / CNPJ" aria-label="CPF ou CNPJ do ${one}">
+          <small class="qerr" role="alert" hidden></small>
+          <div class="r"><button type="button" class="btn sm" data-qcancel="${f.k}">Cancelar</button><button type="button" class="btn pri sm" data-qsave="${f.k}">Cadastrar ${one}</button></div>
+          <small style="color:var(--muted)">Os outros dados (e-mail, repasse) podem ser completados depois na tela Proprietários.</small></div></div>`; }
     case "area": return `<div class="${cls}">${lab}<textarea id="${id}" name="${f.k}" ${req}>${esc(v)}</textarea></div>`;
     case "password": {
       const eye = `<button type="button" class="pweye" data-pw aria-label="Mostrar senha" title="Mostrar senha"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></button>`;
@@ -2022,6 +2040,9 @@ Regras: nomes de pessoas em MAIÚSCULAS; CPF, RG e telefones como estão escrito
       if (e.target.closest("#pwlink")) { const b = e.target.closest("#pwlink"); b.disabled = true; window.M2_AUTH.reset(d.email || d.usuario).then(em => { b.textContent = "✔ Link enviado para " + em; toast("Link de troca de senha enviado"); }).catch(err => { b.disabled = false; toast(err.message || "Não foi possível enviar o link"); }); }
       const ar = e.target.closest("[data-anxrm]"); if (ar) { const a = anexos.splice(+ar.dataset.anxrm, 1)[0]; drawAnexos(); if (a && a.id) S.db.collection("anexos").doc(a.id).delete().catch(() => {}); }
       const ao = e.target.closest("[data-anxopen]"); if (ao) openAnexo(anexos[+ao.dataset.anxopen]);
+      const qa = e.target.closest("[data-qadd]"); if (qa) { const p = $("#qa_" + qa.dataset.qadd, ov); p.hidden = !p.hidden; if (!p.hidden) $("#qa_" + qa.dataset.qadd + "_nome", ov).focus(); }
+      const qc = e.target.closest("[data-qcancel]"); if (qc) $("#qa_" + qc.dataset.qcancel, ov).hidden = true;
+      const qs = e.target.closest("[data-qsave]"); if (qs) quickSave(qs.dataset.qsave, qs);
       if (e.target.id === "del") {
         if (!delArm) { delArm = true; e.target.textContent = "Confirmar exclusão"; return; }
         S.db.collection(col).doc(d.id).delete().then(()=>{ closeModal(); toast("Excluído"); }).catch(err => showErr(err));
@@ -2043,6 +2064,26 @@ Regras: nomes de pessoas em MAIÚSCULAS; CPF, RG e telefones como estão escrito
       else p.scrollIntoView({block:"center"});
       toast(msg);
     }
+    async function quickSave(k, btn){
+      const f = sc.fields.find(x => x.k === k); const one = SCHEMAS[f.ref].one; const pre = "#qa_" + k;
+      const nomeEl = $(pre + "_nome", ov); const err = $(pre + " .qerr", ov);
+      const nome = nomeEl.value.trim(), telefone = $(pre + "_tel", ov).value.trim(), documento = $(pre + "_doc", ov).value.trim();
+      err.hidden = true; nomeEl.classList.remove("bad");
+      if (!nome) { err.hidden = false; err.textContent = `Digite o nome do ${one}.`; nomeEl.classList.add("bad"); nomeEl.focus(); toast(err.textContent); return; }
+      const dup = S.data[f.ref].find(x => norm(x.nome || "") === norm(nome));
+      if (dup && btn.dataset.dupOk !== "1") { btn.dataset.dupOk = "1"; err.hidden = false; err.textContent = `Já existe um ${one} chamado “${dup.nome}”. Se for a mesma pessoa, escolha na lista. Para cadastrar outro com esse nome, clique de novo em “Cadastrar ${one}”.`; return; }
+      btn.disabled = true; btn.textContent = "Cadastrando…";
+      try {
+        const ref = await S.db.collection(f.ref).add({nome, telefone, documento, criadoEm:new Date().toISOString()});
+        const sel = ov.querySelector(`[name="${k}"]`);
+        if (!sel.querySelector(`option[value="${ref.id}"]`)) sel.insertAdjacentHTML("beforeend", `<option value="${ref.id}">${esc(nome)}</option>`);
+        sel.value = ref.id;
+        $(pre, ov).hidden = true; [nomeEl, $(pre + "_tel", ov), $(pre + "_doc", ov)].forEach(x => x.value = ""); delete btn.dataset.dupOk;
+        toast(`${one[0].toUpperCase() + one.slice(1)} cadastrado e escolhido. Agora clique em ${isNew ? "Cadastrar" : "Salvar"}.`);
+      } catch (e2) { err.hidden = false; err.textContent = e2.code === "permission_denied" ? "Você não tem permissão para cadastrar." : (e2.message || `Não foi possível cadastrar o ${one}.`); toast(err.textContent); }
+      finally { btn.disabled = false; btn.textContent = `Cadastrar ${one}`; }
+    }
+    ov.addEventListener("keydown", e => { const q = e.target.closest && e.target.closest(".qadd"); if (q && e.key === "Enter") { e.preventDefault(); const b = q.querySelector("[data-qsave]"); quickSave(b.dataset.qsave, b); } });
     function clearErr(){ ov.querySelectorAll(".bad").forEach(x => x.classList.remove("bad")); ov.querySelectorAll(".ferr").forEach(x => x.remove()); $("#ferr", ov).hidden = true; }
     $("#frm", ov).addEventListener("submit", async e => {
       e.preventDefault();
