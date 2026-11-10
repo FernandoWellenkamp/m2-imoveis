@@ -115,6 +115,29 @@
       if (login !== old.usuario) { await fs.doc("logins/" + login).set({email: old.email}); if (old.usuario) await fs.doc("logins/" + old.usuario).delete().catch(() => {}); }
     },
   };
+  // Leitura de fichas com IA (Firebase AI Logic / Gemini). Precisa ser ativado no console do Firebase.
+  let aiModel = null;
+  window.M2_AI = { async read(prompt, parts){
+    if (!staff) throw {message: "Entre na área administrativa para usar a leitura de fichas."};
+    const V = "12.6.0";
+    if (!aiModel) {
+      const A = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-app.js`);
+      const G = await import(`https://www.gstatic.com/firebasejs/${V}/firebase-ai.js`);
+      const app = A.getApps().find(a => a.name === "ai") || A.initializeApp(CFG, "ai");
+      const ai = G.getAI(app, {backend: new G.GoogleAIBackend()});
+      aiModel = m => G.getGenerativeModel(ai, {model: m, generationConfig: {responseMimeType: "application/json", temperature: 0}});
+    }
+    const content = [prompt, ...parts.map(p => ({inlineData: {mimeType: p.mime, data: p.data}}))];
+    let last;
+    for (const m of ["gemini-flash-latest", "gemini-2.5-flash"]) {
+      try { const r = await aiModel(m).generateContent(content); return r.response.text(); }
+      catch (e) { last = e; const t = String(e && e.message || e);
+        if (/firebasevertexai|Get started|API has not been used|is disabled/i.test(t)) throw {message: "A leitura automática ainda não foi ativada no Firebase (AI Logic). A ficha foi só anexada."};
+        if (/quota|429|exhausted/i.test(t)) throw {message: "Limite de leituras gratuitas atingido por agora. Tente de novo em alguns minutos."};
+        if (!/not found|404|not supported/i.test(t)) break; }
+    }
+    throw {message: "Não foi possível ler a ficha agora (" + String(last && last.message || last).slice(0, 120) + ")."};
+  } };
   window.claude = { use: async n => { await ready;
     if (n === "db") return db;
     if (n === "user") return {can: () => staff, isOwner: () => staff};
@@ -559,6 +582,13 @@ header.top,nav.bnav{display:none!important}
 .anxadd{display:flex;gap:8px;flex-wrap:wrap}
 .anxadd select{flex:1 1 200px;min-width:0}
 .anxview{z-index:70}
+.scaninfo{margin:0 0 14px;padding:10px 12px;border-radius:8px;font-size:13.5px;background:var(--sunk);color:var(--ink)}
+.scaninfo.ok{background:var(--ok-bg,#e6f4ea);color:var(--ink)}
+.scaninfo.warn{background:var(--warn-bg);color:var(--ink)}
+.form .f.aifill input,.form .f.aifill select,.form .f.aifill textarea{background:var(--warn-bg);border-color:var(--gold)}
+.form .f.aifill .chk{background:var(--warn-bg);border-radius:6px}
+.scanbtn{border-color:var(--gold)}
+.scaninfo.ok{background:var(--ok-bg)}
 @media (max-width:560px){.anxi{grid-template-columns:auto 1fr auto}.anxi small{display:none}}
 .phint{font-size:13px;background:var(--sunk);padding:10px 12px;border-radius:8px}
 @media (max-width:860px){
@@ -1530,7 +1560,7 @@ Object.assign(SCHEMAS, {
     {k:"imovelId", l:"Imóvel", t:"ref", ref:"imoveis"},
     {k:"texto", l:"Mensagem", t:"area", req:1},
   ]},
-  captacoes: { one:"captação", fields:[
+  captacoes: { one:"captação", scan:"ficha de captação e autorização de venda", fields:[
     {k:"anexos", l:"Ficha de captação preenchida e documentos (PDF, JPG ou PNG — fotos do WhatsApp servem)", t:"anexos", docs:CAPT_DOCS, docLbl:"O que é este arquivo?"},
     {sec:"1. Proprietário / responsável"},
     {k:"propNome", l:"Nome completo", req:1, c:4, up:1},
@@ -1601,7 +1631,7 @@ Object.assign(SCHEMAS, {
     {k:"valorAvaliado", l:"Valor avaliado (R$)", t:"num", c:3},
     {k:"obs", l:"Anotações", t:"area"},
   ]},
-  fichas: { one:"ficha", fields:[
+  fichas: { one:"ficha", scan:"ficha cadastral (locação, compra, fiador ou proprietário)", fields:[
     {k:"tipo", l:"Tipo de ficha", t:"select", o:["Locação (inquilino)","Compra","Fiador","Proprietário"], c:3, req:1},
     {k:"status", l:"Situação", t:"select", o:FICHA_ST, c:3, def:"Em análise"},
     {sec:"Dados pessoais"},
@@ -1890,13 +1920,13 @@ function openForm(col, d, preset){
   let anexos = [...(d.anexos||[])];
   if (!S.canWrite) return;
   openModal(`<form id="frm" novalidate><div class="mh"><div><span class="lbl">${isNew ? "Novo cadastro" : esc(d.codigo || "Editar")}</span><h2>${isNew ? (/^(visita|mensagem|captação|ficha)$/.test(sc.one) ? "Nova " : "Novo ") + sc.one : esc(d.titulo || d.nome || d.inquilino || "Editar " + sc.one)}</h2></div><button type="button" class="x" aria-label="Fechar" data-act="close">×</button></div>
-    <div class="mb"><div class="form">${sc.fields.map(f=>fieldHtml(f,d)).join("")}</div><p id="ferr" style="color:var(--bad);margin:12px 0 0" hidden></p></div>
-    <div class="mf">${!isNew ? `<button type="button" class="btn danger" id="del">Excluir</button>` : ""}<div class="r"><button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn pri" id="save">${isNew ? "Cadastrar" : "Salvar"}</button></div></div></form>`,
+    <div class="mb">${sc.scan ? `<p class="scaninfo tip" id="scanInfo">Recebeu a ficha preenchida (papel, PDF ou foto do WhatsApp)? Clique em <b>📄 Ler ficha preenchida</b>, lá embaixo: o sistema preenche os campos e você só confere e cadastra.</p>` : ""}<div class="form">${sc.fields.map(f=>fieldHtml(f,d)).join("")}</div><p id="ferr" style="color:var(--bad);margin:12px 0 0" hidden></p></div>
+    <div class="mf">${!isNew ? `<button type="button" class="btn danger" id="del">Excluir</button>` : ""}${sc.scan ? `<button type="button" class="btn scanbtn" id="scanBtn" title="Envie a ficha preenchida (PDF, JPG ou PNG) e o sistema preenche os campos para você conferir">📄 Ler ficha preenchida</button><input type="file" id="scanIn" accept="application/pdf,image/png,image/jpeg,.pdf,.png,.jpg,.jpeg" hidden>` : ""}<div class="r"><button type="button" class="btn" data-act="close">Cancelar</button><button type="submit" class="btn pri" id="save">${isNew ? "Cadastrar" : "Salvar"}</button></div></div></form>`,
   ov => {
     const drawPhotos = () => { const box = $("#photos", ov); if (!box) return;
       box.innerHTML = fotos.map((f,i)=>`<div class="th"><img src="${photoUrl(f)}" alt="Foto ${i+1}"><button type="button" data-rmph="${i}" aria-label="Remover foto ${i+1}">×</button></div>`).join("") + (uploading ? `<div class="add">Enviando ${uploading}…</div>` : "") + `<button type="button" class="add" id="addPh">+ Adicionar fotos</button>`; };
     drawPhotos();
-    const anxF = sc.fields.find(x => x.t === "anexos"); const ANXT = Object.fromEntries([...((anxF && anxF.docs) || DOCS), ["outro","Outro documento"]]);
+    const anxF = sc.fields.find(x => x.t === "anexos"); const ANXT = Object.fromEntries([...((anxF && anxF.docs) || DOCS), ["ficha","Ficha preenchida"], ["outro","Outro documento"]]);
     const kb = n => n >= 1048576 ? (n/1048576).toFixed(1).replace(".", ",") + " MB" : Math.max(1, Math.round(n/1024)) + " KB";
     const drawAnexos = () => { const box = $("#anx", ov); if (!box) return;
       box.innerHTML = (anexos.length ? anexos.map((a, i) => `<div class="anxi"><span class="anxic">${/pdf/.test(a.mime) ? "PDF" : "IMG"}</span><button type="button" class="linkbtn" data-anxopen="${i}">${esc(a.nome)}</button><small>${esc(ANXT[a.tipo] || "Documento")} · ${kb(a.tamanho||0)}</small><button type="button" class="x" data-anxrm="${i}" aria-label="Remover ${esc(a.nome)}">×</button></div>`).join("") : `<small style="color:var(--muted)">Nenhum arquivo anexado.</small>`) + (uploading ? `<small>Enviando ${uploading} arquivo(s)…</small>` : ""); };
@@ -1911,24 +1941,66 @@ function openForm(col, d, preset){
       let q = .8, blob; do { blob = await new Promise(r => c.toBlob(r, "image/jpeg", q)); q -= .15; } while (blob.size > 650*1024 && q > .3);
       return {blob, mime:"image/jpeg", nome:file.name.replace(/\.(png|jpe?g)$/i, "") + ".jpg"};
     }
+    async function attachFile(file, tipo){
+      uploading++; drawAnexos();
+      try {
+        const p = await prepFile(file); const data = await toB64(p.blob);
+        const ref = await S.db.collection("anexos").add({nome:p.nome, mime:p.mime, tamanho:p.blob.size, data, criadoEm:new Date().toISOString()});
+        anexos.push({id:ref.id, nome:p.nome, mime:p.mime, tamanho:p.blob.size, tipo});
+        if (tipo && tipo !== "outro") { const cb = ov.querySelector(`[name="${tipo}"]`); if (cb) cb.checked = true; }
+        return true;
+      } catch (err) { toast(err.message || "Não foi possível anexar o arquivo."); const p = $("#ferr", ov); if (p) { p.hidden = false; p.textContent = err.message || "Não foi possível anexar o arquivo."; } return false; }
+      finally { uploading--; drawAnexos(); }
+    }
     const anxIn = $("#anxIn", ov);
     anxIn && anxIn.addEventListener("change", async () => {
       const files = [...anxIn.files]; anxIn.value = ""; const tipo = $("#anxTipo", ov).value;
-      uploading += files.length; drawAnexos();
-      for (const file of files) {
-        try {
-          const p = await prepFile(file); const data = await toB64(p.blob);
-          const ref = await S.db.collection("anexos").add({nome:p.nome, mime:p.mime, tamanho:p.blob.size, data, criadoEm:new Date().toISOString()});
-          anexos.push({id:ref.id, nome:p.nome, mime:p.mime, tamanho:p.blob.size, tipo});
-          if (tipo && tipo !== "outro") { const cb = ov.querySelector(`[name="${tipo}"]`); if (cb) cb.checked = true; }
-        } catch (err) { showErr({message: err.message || "Não foi possível anexar o arquivo."}); }
-        uploading--; drawAnexos();
-      }
+      for (const file of files) await attachFile(file, tipo);
+    });
+    const scanIn = $("#scanIn", ov);
+    scanIn && scanIn.addEventListener("change", async () => {
+      const file = scanIn.files[0]; scanIn.value = ""; if (!file) return;
+      const btn = $("#scanBtn", ov); const info = $("#scanInfo", ov);
+      if (!window.M2_AI) { info.className = "scaninfo warn"; info.hidden = false; info.textContent = "A leitura automática funciona só no sistema online (com o Firebase). Aqui a ficha foi apenas anexada."; await attachFile(file, anxF && anxF.docs ? "docFicha" : "ficha"); return; }
+      btn.disabled = true; btn.textContent = "⏳ Lendo a ficha…"; info.className = "scaninfo"; info.hidden = false; info.textContent = "Lendo a ficha… isso leva de 10 a 40 segundos.";
+      try {
+        const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+        let part;
+        if (isPdf) { if (file.size > 15*1024*1024) throw {message:"PDF muito grande para leitura (máximo 15 MB)."}; part = {mime:"application/pdf", data: await toB64(file)}; }
+        else { const bm = await createImageBitmap(file); const w = Math.min(2200, bm.width), hh = Math.round(bm.height*w/bm.width); const c = document.createElement("canvas"); c.width = w; c.height = hh; c.getContext("2d").drawImage(bm, 0, 0, w, hh); part = {mime:"image/jpeg", data: await toB64(await new Promise(r => c.toBlob(r, "image/jpeg", .88)))}; }
+        const flds = sc.fields.filter(f => f.k && !["anexos","photos","ref","password"].includes(f.t) && !["status","origem"].includes(f.k));
+        const desc = f => f.t === "select" ? `uma destas opções: ${f.o.filter(Boolean).map(o => `"${o}"`).join(", ")}` : f.t === "bool" ? "true se a caixa estiver marcada/sim, false se marcada não" : f.t === "num" ? "número (sem R$, sem separador de milhar, ponto como decimal)" : f.t === "date" ? "data no formato AAAA-MM-DD" : "texto";
+        const prompt = `Você está lendo uma ${sc.scan} da imobiliária M2 Imóveis e Loteamentos (Parnaíba-PI), normalmente preenchida à mão e fotografada pelo WhatsApp.
+Transcreva os dados preenchidos e devolva SOMENTE um objeto JSON com estas chaves (omita as que estiverem em branco ou ilegíveis; não invente nada):
+${flds.map(f => `- "${f.k}": ${f.l.replace(/\s*\(.*?\)\s*$/, "") === f.l ? f.l : f.l} — ${desc(f)}`).join("\n")}
+Regras: nomes de pessoas em MAIÚSCULAS; CPF, RG e telefones como estão escritos; textos impressos do modelo (títulos, rótulos, cláusulas) não são dados; use também a chave "_ilegivel" com uma lista curta dos rótulos de campos que estão preenchidos mas você não conseguiu ler com segurança.`;
+        const txt = await window.M2_AI.read(prompt, [part]);
+        let out; try { out = JSON.parse(String(txt).replace(/^```(json)?|```$/g, "").trim()); } catch (e) { throw {message:"Não consegui entender a ficha. Tente uma foto mais nítida e de frente."}; }
+        const nrm = s => String(s ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]/g, "");
+        let n = 0; ov.querySelectorAll(".aifill").forEach(x => x.classList.remove("aifill"));
+        for (const f of flds) {
+          let v = out[f.k]; if (v === undefined || v === null || v === "") continue;
+          const el = ov.querySelector(`[name="${f.k}"]`); if (!el) continue;
+          if (f.t === "bool") { el.checked = v === true || /^(true|sim|s|x|marcad)/i.test(String(v)); }
+          else if (f.t === "select") { const o = [...el.options].find(o => nrm(o.value) === nrm(v)) || [...el.options].find(o => o.value && (nrm(o.value).includes(nrm(v)) || nrm(v).includes(nrm(o.value)))) || (nrm(v).length >= 4 ? [...el.options].find(o => o.value && nrm(o.value).slice(0, 5) === nrm(v).slice(0, 5)) : null); if (!o) continue; el.value = o.value; }
+          else if (f.t === "num") { const x = typeof v === "number" ? v : parseFloat(String(v).replace(/[^\d,.-]/g, "").replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", ".")); if (!isFinite(x)) continue; el.value = x; }
+          else if (f.t === "date") { if (!/^\d{4}-\d{2}-\d{2}$/.test(String(v))) continue; el.value = v; }
+          else el.value = f.up ? String(v).toLocaleUpperCase("pt-BR") : String(v);
+          el.closest(".f").classList.add("aifill"); n++;
+        }
+        const ileg = Array.isArray(out._ilegivel) && out._ilegivel.length ? ` Não consegui ler com segurança: ${out._ilegivel.slice(0, 8).join(", ")}.` : "";
+        info.className = "scaninfo ok"; info.textContent = `✔ ${n} campos preenchidos a partir da ficha (destacados em amarelo). Confira cada um, corrija o que precisar e clique em ${isNew ? "Cadastrar" : "Salvar"}.${ileg}`;
+        $(".mb", ov).scrollTop = 0;
+      } catch (err) {
+        info.className = "scaninfo warn"; info.textContent = (err && err.message) || "Não foi possível ler a ficha.";
+      } finally { btn.disabled = false; btn.textContent = "📄 Ler ficha preenchida"; }
+      await attachFile(file, anxF && anxF.docs ? "docFicha" : "ficha");
     });
     ov.addEventListener("click", e => {
       if (e.target.id === "addPh") $("#fileIn", ov).click();
       const rm = e.target.dataset.rmph; if (rm !== undefined) { fotos.splice(+rm,1); drawPhotos(); }
       if (e.target.closest("#anxBtn")) $("#anxIn", ov).click();
+      if (e.target.closest("#scanBtn")) $("#scanIn", ov).click();
       const ar = e.target.closest("[data-anxrm]"); if (ar) { const a = anexos.splice(+ar.dataset.anxrm, 1)[0]; drawAnexos(); if (a && a.id) S.db.collection("anexos").doc(a.id).delete().catch(() => {}); }
       const ao = e.target.closest("[data-anxopen]"); if (ao) openAnexo(anexos[+ao.dataset.anxopen]);
       if (e.target.id === "del") {
