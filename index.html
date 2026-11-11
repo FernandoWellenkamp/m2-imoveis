@@ -666,7 +666,10 @@ header.top,nav.bnav{display:none!important}
 .shero.temsl{background:#1d3b85}
 .shero.temsl>.swrap{position:relative;z-index:1}
 .shsls{position:absolute;inset:0;overflow:hidden;z-index:0}
-.shsl{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:cover;object-position:center 60%;opacity:0;transition:opacity 1.4s ease}
+.shsl{position:absolute;inset:0;opacity:0;transition:opacity 1.4s ease}
+.shsl img{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:cover;object-position:center 60%}
+.shsl .shcel{display:none}
+@media (max-width:860px){.shsl .shpc{display:none}.shsl .shcel{display:block;object-position:center}}
 .shsl.on{opacity:1}
 .shov{position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,22,52,.82) 0%,rgba(10,22,52,.5) 42%,rgba(10,22,52,.1) 100%)}
 @media (max-width:860px){.shov{background:linear-gradient(180deg,rgba(10,22,52,.55),rgba(10,22,52,.85))}}
@@ -675,6 +678,9 @@ header.top,nav.bnav{display:none!important}
 .mold:active{cursor:grabbing}
 .mold canvas{display:block;width:100%;height:auto}
 .mold .mov{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,rgba(10,22,52,.6) 0%,rgba(10,22,52,.3) 42%,rgba(10,22,52,0) 100%)}
+.mold.cel{max-width:min(300px,29vh);margin:0 auto}
+.mold.cel .mov{background:linear-gradient(180deg,rgba(10,22,52,.55),rgba(10,22,52,.85))}
+.mold.cel .mcel{display:none}
 .mold .mcel{position:absolute;top:0;bottom:0;left:40%;width:20%;border-left:2px dashed rgba(255,255,255,.85);border-right:2px dashed rgba(255,255,255,.85);pointer-events:none}
 .mold .mcel span{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);white-space:nowrap;font-size:11px;color:#fff;background:rgba(0,0,0,.55);padding:1px 6px;border-radius:4px}
 .mctl{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px 16px;margin-top:12px}
@@ -789,7 +795,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
-const M2_VERSAO = "1.22 · 11/11/2026";
+const M2_VERSAO = "1.23 · 11/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
@@ -1532,7 +1538,7 @@ const SITE = (() => {
     const byB = {}; all.forEach(i => { if (!i.bairro) return; const b = byB[i.bairro] || (byB[i.bairro] = {n:0, min:Infinity}); b.n++; const p = n0(i.valorVenda) || Infinity; b.min = Math.min(b.min, p); });
     const bairros = Object.entries(byB).sort((a,b) => b[1].n - a[1].n).slice(0, 12);
     const fds = fundosLista(); const fi = fds.length ? S.heroIdx % fds.length : 0;
-    return `<section class="shero shcity${fds.length ? " temsl" : ""}">${fds.length ? `<div class="shsls" aria-hidden="true">${fds.map((f, i) => `<img class="shsl${i === fi ? " on" : ""}" src="${photoUrl(f)}" alt="">`).join("")}<div class="shov"></div></div>${fds.length > 1 ? `<div class="shdots">${fds.map((f, i) => `<button type="button" data-shdot="${i}" aria-label="Foto ${i + 1} de ${fds.length}" aria-pressed="${i === fi}"></button>`).join("")}</div>` : ""}` : ""}<div class="swrap shgrid">
+    return `<section class="shero shcity${fds.length ? " temsl" : ""}">${fds.length ? `<div class="shsls" aria-hidden="true">${fds.map((f, i) => `<div class="shsl${i === fi ? " on" : ""}"><img class="shpc" src="${photoUrl(fPc(f))}" alt=""><img class="shcel" src="${photoUrl(fCel(f))}" alt=""></div>`).join("")}<div class="shov"></div></div>${fds.length > 1 ? `<div class="shdots">${fds.map((f, i) => `<button type="button" data-shdot="${i}" aria-label="Foto ${i + 1} de ${fds.length}" aria-pressed="${i === fi}"></button>`).join("")}</div>` : ""}` : ""}<div class="swrap shgrid">
         <div class="shtxt"><h1>${esc(c.slogan || "Encontre seu imóvel em Parnaíba com a M2")}</h1><p>Casas, apartamentos e lotes para comprar ou alugar, com atendimento de quem conhece a cidade.</p></div>
         ${searchBox()}</div>${fds.length ? "" : `<small class="shcred">Foto: Porto das Barcas, Parnaíba — Raniel Souza / Wikimedia Commons (CC BY 4.0)</small>`}</section>
       <section class="ssec"><div class="swrap"><div class="shd"><h2>Imóveis em destaque</h2>
@@ -1948,6 +1954,8 @@ function inkFor(hex){ const n = parseInt(hex.slice(1), 16), r = n >> 16 & 255, g
   const L = [r,g,b].map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return (.2126*L[0] + .7152*L[1] + .0722*L[2]) > .45 ? "#111111" : "#ffffff"; }
 /* Carrossel do fundo da página inicial: até 10 fotos, troca a cada 15 s */
 const FUNDOS_MAX = 10, FUNDO_SEG = 15;
+const fPc = f => typeof f === "string" ? f : (f && (f.pc || f.cel)) || "";
+const fCel = f => typeof f === "string" ? f : (f && (f.cel || f.pc)) || "";
 function fundosLista(){ const a = S.apar || {}; return (Array.isArray(a.fundos) ? a.fundos : a.fundo ? [a.fundo] : []).filter(Boolean).slice(0, FUNDOS_MAX); }
 S.heroIdx = 0;
 function heroMostra(i){ const sl = document.querySelectorAll(".shero .shsl"); if (!sl.length) return; S.heroIdx = ((i % sl.length) + sl.length) % sl.length;
@@ -2125,12 +2133,13 @@ function vManut(){
       <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" data-man="tema-outra">🔀 Outra arrumação</button><button class="btn" data-man="tema-msg">Atualizar mensagem e cor</button><button class="btn pri" data-man="tema-usa">✓ Usar esta logo</button><button class="btn" data-man="tema-descarta">Descartar</button></span>
     </div>` : ""}</section>`; })()}
   ${(() => { const fds = fundosLista();
-    const th = (src, i) => `<div style="position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/7;background:#1d3b85"><img src="${src}" alt="Foto ${i + 1} do fundo" style="width:100%;height:100%;object-fit:cover;display:block">
+    const th = (src, i, cel) => `<div style="position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/7;background:#1d3b85"><img src="${src}" alt="Foto ${i + 1} do fundo (computador)" style="width:100%;height:100%;object-fit:cover;display:block">
+      ${cel ? `<img src="${cel}" alt="Foto ${i + 1} do fundo (celular)" title="Versão do celular" style="position:absolute;right:6px;bottom:6px;height:62%;aspect-ratio:9/17;object-fit:cover;border:2px solid #fff;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.4)">` : ""}
       <span style="position:absolute;left:6px;top:6px;background:rgba(0,0,0,.6);color:#fff;border-radius:6px;padding:1px 7px;font-size:12px;font-weight:600">${i + 1}</span>
       ${fds.length ? `<span style="position:absolute;right:6px;top:6px;display:flex;gap:4px">${i > 0 ? `<button type="button" class="btn sm" data-fdmove="${i}" data-dir="-1" title="Mostrar antes" aria-label="Mover a foto ${i + 1} para antes">◀</button>` : ""}${i < fds.length - 1 ? `<button type="button" class="btn sm" data-fdmove="${i}" data-dir="1" title="Mostrar depois" aria-label="Mover a foto ${i + 1} para depois">▶</button>` : ""}<button type="button" class="btn sm danger" data-fddel="${i}" title="Excluir esta foto" aria-label="Excluir a foto ${i + 1}">✕</button></span>` : ""}</div>`;
     return `<section class="panel" style="margin-bottom:16px"><h2>Fotos de fundo da página inicial</h2>
-    <p style="color:var(--muted);margin:4px 0 12px">São as fotos grandes atrás da busca, na primeira tela do site. Você pode ter de 1 a ${FUNDOS_MAX} fotos: com uma só, ela fica parada; com mais de uma, elas se revezam a cada ${FUNDO_SEG} segundos, na ordem abaixo. Use fotos na horizontal (deitadas), de boa qualidade. Elas são reduzidas e tratadas automaticamente. O fundo precisa ter sempre pelo menos 1 foto.</p>
-    ${fds.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px">${fds.map((f, i) => th(photoUrl(f), i)).join("")}</div>`
+    <p style="color:var(--muted);margin:4px 0 12px">São as fotos grandes atrás da busca, na primeira tela do site. Você pode ter de 1 a ${FUNDOS_MAX} fotos: com uma só, ela fica parada; com mais de uma, elas se revezam a cada ${FUNDO_SEG} segundos, na ordem abaixo. Ao adicionar, você ajusta a versão do <b>computador</b> e a do <b>celular</b> (a miniatura em pé no canto). Elas são reduzidas e tratadas automaticamente. O fundo precisa ter sempre pelo menos 1 foto.</p>
+    ${fds.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px">${fds.map((f, i) => th(photoUrl(fPc(f)), i, typeof f === "string" ? "" : photoUrl(fCel(f)))).join("")}</div>`
       : `<div style="max-width:420px">${th("https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Caminho_no_Porto_das_Barcas.jpg/960px-Caminho_no_Porto_das_Barcas.jpg", 0)}</div><small style="color:var(--muted)">Hoje aparece a foto original (Porto das Barcas). Ao adicionar suas fotos, ela sai e não volta mais: o fundo passa a ser só as suas fotos.</small>`}
     <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center">${fds.length < FUNDOS_MAX ? `<button class="btn sm pri" data-man="fundo">+ Adicionar ${fds.length ? "fotos" : "suas fotos"}</button>` : `<span style="color:var(--muted)">Limite de ${FUNDOS_MAX} fotos atingido. Exclua uma para colocar outra.</span>`}<span style="color:var(--muted)">${fds.length}/${FUNDOS_MAX} fotos</span><span id="mfundoSt" style="color:var(--muted)"></span></span></section>`; })()}
   <section class="panel"><h2>Cores</h2>
@@ -2139,56 +2148,75 @@ function vManut(){
     <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn pri" data-man="cores">Salvar cores</button><button class="btn" data-man="cores-desfaz">Desfazer mudanças</button>${(a.cor1 || a.cor2 || a.cor3) ? `<button class="btn" data-man="cores-orig">Voltar às cores originais da M2</button>` : ""}</span></section>
   <input type="file" id="manIn" accept="image/*" hidden><input type="file" id="manFundos" accept="image/*" multiple hidden>`;
 }
-/* Moldura: ajustar a foto ao formato do fundo antes de enviar */
-const MOLD_W = 1920, MOLD_H = 720; // formato do fundo no computador (8:3); no celular aparece só a faixa do meio
+/* Moldura: ajustar a foto ao fundo, com uma versão para o computador (deitada) e outra para o celular (em pé) */
+const MOLD = {pc: {W: 1920, H: 720, nome: "Computador"}, cel: {W: 720, H: 1360, nome: "Celular"}};
+const MOLD_W = MOLD.pc.W, MOLD_H = MOLD.pc.H;
 function abreImg(file){ return new Promise((ok, no) => { const u = URL.createObjectURL(file); const i = new Image();
   i.onload = () => ok(i); i.onerror = () => { URL.revokeObjectURL(u); no({message: `Não consegui abrir “${file.name}”. Use JPG ou PNG.`}); }; i.src = u; }); }
 function editaFundo(file, img, k, n){ return new Promise(resolve => {
-  const iw = img.naturalWidth, ih = img.naturalHeight, cover = Math.max(MOLD_W / iw, MOLD_H / ih), contain = Math.min(MOLD_W / iw, MOLD_H / ih);
-  const st = {zoom: 1, sx: 1, sy: 1, cx: MOLD_W / 2, cy: MOLD_H / 2, borda: "desfoque", cor: "#0f1c3f"};
+  const iw = img.naturalWidth, ih = img.naturalHeight;
+  const cov = m => Math.max(MOLD[m].W / iw, MOLD[m].H / ih), con = m => Math.min(MOLD[m].W / iw, MOLD[m].H / ih);
+  const novo = m => ({zoom: 1, sx: 1, sy: 1, cx: MOLD[m].W / 2, cy: MOLD[m].H / 2, mexeu: false});
+  const st = {pc: novo("pc"), cel: novo("cel")}; let borda = "desfoque", cor = "#0f1c3f", modo = "pc";
   let fim = false; const acaba = v => { if (fim) return; fim = true; obs.disconnect(); resolve(v); };
-  const desenha = (g) => {
-    g.clearRect(0, 0, MOLD_W, MOLD_H);
-    if (st.borda === "desfoque") { g.save(); g.filter = "blur(36px) brightness(.75)"; const c = cover * 1.15; g.drawImage(img, (MOLD_W - iw * c) / 2, (MOLD_H - ih * c) / 2, iw * c, ih * c); g.restore(); }
-    else { g.fillStyle = st.cor; g.fillRect(0, 0, MOLD_W, MOLD_H); }
-    const w = iw * cover * st.zoom * st.sx, h = ih * cover * st.zoom * st.sy;
-    g.drawImage(img, st.cx - w / 2, st.cy - h / 2, w, h); };
+  const desenha = (g, m) => { const {W, H} = MOLD[m], t = st[m], cover = cov(m);
+    g.clearRect(0, 0, W, H);
+    if (borda === "desfoque") { g.save(); g.filter = "blur(36px) brightness(.75)"; const c = cover * 1.15; g.drawImage(img, (W - iw * c) / 2, (H - ih * c) / 2, iw * c, ih * c); g.restore(); }
+    else { g.fillStyle = cor; g.fillRect(0, 0, W, H); }
+    const w = iw * cover * t.zoom * t.sx, h = ih * cover * t.zoom * t.sy;
+    g.drawImage(img, t.cx - w / 2, t.cy - h / 2, w, h); };
   const pct = v => Math.round(v * 100) + "%";
+  const aba = m => `<button type="button" class="btn sm" data-mold="m-${m}" aria-pressed="${m === "pc"}">${m === "pc" ? "🖥️" : "📱"} ${MOLD[m].nome}<span class="mok" data-mok="${m}"></span></button>`;
   openModal(`<div class="mh"><div><span class="lbl">Foto ${k + 1} de ${n} · ${esc(file.name)}</span><h2>Encaixe a foto na moldura</h2></div><button type="button" class="x" aria-label="Fechar" data-mold="cancela">×</button></div>
-    <div class="mb"><p style="margin:0 0 10px;color:var(--muted)">Esta foto não tem o formato do fundo. <b>Arraste a foto</b> para posicionar e use os controles para aumentar, diminuir, alargar ou encurtar. A moldura mostra exatamente o que aparece no site. A faixa tracejada no meio é o que aparece no <b>celular</b>.</p>
-      <div class="mold" id="mold"><canvas id="moldCv" width="${MOLD_W}" height="${MOLD_H}"></canvas><div class="mov"></div><div class="mcel"><span>celular</span></div></div>
+    <div class="mb"><p style="margin:0 0 10px;color:var(--muted)">A foto tem duas versões: uma para o <b>computador</b> (deitada) e outra para o <b>celular</b> (em pé). Escolha a aba, <b>arraste a foto</b> para posicionar e use os controles para aumentar, diminuir, alargar ou encurtar. A moldura mostra exatamente o que aparece no site.</p>
+      <div class="seg" role="group" aria-label="Versão" style="margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap">${aba("pc")}${aba("cel")}</div>
+      <div class="mold" id="mold"><canvas id="moldCv" width="${MOLD.pc.W}" height="${MOLD.pc.H}"></canvas><div class="mov"></div><div class="mcel"><span>celular</span></div></div>
+      <small id="mDica" style="color:var(--muted);display:block;margin-top:6px"></small>
       <div class="mctl">
-        <label>Tamanho <span class="mono" id="mvZoom">100%</span><input type="range" id="mZoom" min="${Math.max(10, Math.floor(contain / cover * 100 * .6))}" max="300" value="100"></label>
+        <label>Tamanho <span class="mono" id="mvZoom">100%</span><input type="range" id="mZoom" min="10" max="300" value="100"></label>
         <label>Largura (alargar / encurtar) <span class="mono" id="mvSx">100%</span><input type="range" id="mSx" min="50" max="200" value="100"></label>
         <label>Altura (esticar / achatar) <span class="mono" id="mvSy">100%</span><input type="range" id="mSy" min="50" max="200" value="100"></label>
         <label>Sobras da moldura<select id="mBorda"><option value="desfoque">Foto desfocada</option><option value="cor">Cor lisa</option></select><input type="color" id="mCor" value="#0f1c3f" hidden style="width:56px;height:34px"></label>
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button type="button" class="btn sm" data-mold="cobre">Preencher a moldura</button><button type="button" class="btn sm" data-mold="inteira">Mostrar a foto inteira</button><button type="button" class="btn sm" data-mold="centro">Centralizar</button><button type="button" class="btn sm" data-mold="zera">Desfazer ajustes</button></div>
     </div>
-    <div class="mf"><button type="button" class="btn" data-mold="pula">Pular esta foto</button><div class="r"><button type="button" class="btn" data-mold="cancela">Cancelar ${n > 1 ? "todas" : ""}</button><button type="button" class="btn pri" data-mold="ok">✓ Usar assim</button></div></div>`, ov => {
-    const cv = $("#moldCv", ov), g = cv.getContext("2d");
-    const sync = () => { $("#mZoom", ov).value = Math.round(st.zoom * 100); $("#mSx", ov).value = Math.round(st.sx * 100); $("#mSy", ov).value = Math.round(st.sy * 100);
-      $("#mvZoom", ov).textContent = pct(st.zoom); $("#mvSx", ov).textContent = pct(st.sx); $("#mvSy", ov).textContent = pct(st.sy); desenha(g); };
-    sync();
-    ov.addEventListener("input", e => { const id = e.target.id;
-      if (id === "mZoom") st.zoom = e.target.value / 100; else if (id === "mSx") st.sx = e.target.value / 100; else if (id === "mSy") st.sy = e.target.value / 100;
-      else if (id === "mCor") st.cor = e.target.value; else return; sync(); });
-    ov.addEventListener("change", e => { if (e.target.id !== "mBorda") return; st.borda = e.target.value; $("#mCor", ov).hidden = st.borda !== "cor"; sync(); });
-    let drag = null; const box = $("#mold", ov);
-    box.addEventListener("pointerdown", e => { const r = cv.getBoundingClientRect(); drag = {x: e.clientX, y: e.clientY, cx: st.cx, cy: st.cy, k: MOLD_W / r.width}; box.setPointerCapture(e.pointerId); });
-    box.addEventListener("pointermove", e => { if (!drag) return; st.cx = drag.cx + (e.clientX - drag.x) * drag.k; st.cy = drag.cy + (e.clientY - drag.y) * drag.k; desenha(g); });
-    const solta = () => { drag = null; }; box.addEventListener("pointerup", solta); box.addEventListener("pointercancel", solta);
-    box.addEventListener("wheel", e => { e.preventDefault(); st.zoom = Math.min(3, Math.max(.1, st.zoom * (e.deltaY < 0 ? 1.06 : 1 / 1.06))); sync(); }, {passive: false});
-    ov.addEventListener("click", async e => { const b = e.target.closest("[data-mold]"); if (!b) return; const a = b.dataset.mold;
-      if (a === "cobre") { st.zoom = 1; st.sx = 1; st.sy = 1; st.cx = MOLD_W / 2; st.cy = MOLD_H / 2; return sync(); }
-      if (a === "inteira") { st.zoom = contain / cover; st.sx = 1; st.sy = 1; st.cx = MOLD_W / 2; st.cy = MOLD_H / 2; return sync(); }
-      if (a === "centro") { st.cx = MOLD_W / 2; st.cy = MOLD_H / 2; return sync(); }
-      if (a === "zera") { Object.assign(st, {zoom: 1, sx: 1, sy: 1, cx: MOLD_W / 2, cy: MOLD_H / 2}); return sync(); }
+    <div class="mf"><button type="button" class="btn" data-mold="pula">Pular esta foto</button><div class="r"><button type="button" class="btn" data-mold="cancela">Cancelar ${n > 1 ? "todas" : ""}</button><button type="button" class="btn pri" data-mold="ok">✓ Usar as duas versões</button></div></div>`, ov => {
+    const cv = $("#moldCv", ov), g = cv.getContext("2d"), box = $("#mold", ov);
+    const sync = () => { const t = st[modo];
+      $("#mZoom", ov).min = Math.max(10, Math.floor(con(modo) / cov(modo) * 100 * .6));
+      $("#mZoom", ov).value = Math.round(t.zoom * 100); $("#mSx", ov).value = Math.round(t.sx * 100); $("#mSy", ov).value = Math.round(t.sy * 100);
+      $("#mvZoom", ov).textContent = pct(t.zoom); $("#mvSx", ov).textContent = pct(t.sx); $("#mvSy", ov).textContent = pct(t.sy);
+      ov.querySelectorAll("[data-mok]").forEach(x => x.textContent = st[x.dataset.mok].mexeu ? " ✓" : "");
+      desenha(g, modo); };
+    const trocaModo = m => { modo = m; cv.width = MOLD[m].W; cv.height = MOLD[m].H; box.classList.toggle("cel", m === "cel");
+      ov.querySelectorAll("[data-mold^='m-']").forEach(b => b.setAttribute("aria-pressed", b.dataset.mold === "m-" + m));
+      $("#mDica", ov).textContent = m === "pc" ? "A faixa tracejada no meio é o que sobra da versão do computador num celular antigo. A versão do celular é ajustada na outra aba." : "É assim que a foto aparece no celular, atrás da busca. Se você não mexer aqui, fica a foto preenchendo a tela, centralizada.";
+      sync(); };
+    trocaModo("pc");
+    const mexe = () => { st[modo].mexeu = true; };
+    ov.addEventListener("input", e => { const id = e.target.id, t = st[modo];
+      if (id === "mZoom") t.zoom = e.target.value / 100; else if (id === "mSx") t.sx = e.target.value / 100; else if (id === "mSy") t.sy = e.target.value / 100;
+      else if (id === "mCor") cor = e.target.value; else return; mexe(); sync(); });
+    ov.addEventListener("change", e => { if (e.target.id !== "mBorda") return; borda = e.target.value; $("#mCor", ov).hidden = borda !== "cor"; sync(); });
+    let drag = null;
+    box.addEventListener("pointerdown", e => { const r = cv.getBoundingClientRect(), t = st[modo]; drag = {x: e.clientX, y: e.clientY, cx: t.cx, cy: t.cy, k: MOLD[modo].W / r.width}; box.setPointerCapture(e.pointerId); });
+    box.addEventListener("pointermove", e => { if (!drag) return; const t = st[modo]; t.cx = drag.cx + (e.clientX - drag.x) * drag.k; t.cy = drag.cy + (e.clientY - drag.y) * drag.k; mexe(); desenha(g, modo); });
+    const solta = () => { if (drag) sync(); drag = null; }; box.addEventListener("pointerup", solta); box.addEventListener("pointercancel", solta);
+    box.addEventListener("wheel", e => { e.preventDefault(); const t = st[modo]; t.zoom = Math.min(3, Math.max(.1, t.zoom * (e.deltaY < 0 ? 1.06 : 1 / 1.06))); mexe(); sync(); }, {passive: false});
+    ov.addEventListener("click", async e => { const b = e.target.closest("[data-mold]"); if (!b) return; const a = b.dataset.mold, t = st[modo], M = MOLD[modo];
+      if (a === "m-pc" || a === "m-cel") return trocaModo(a.slice(2));
+      if (a === "cobre") { Object.assign(t, {zoom: 1, sx: 1, sy: 1, cx: M.W / 2, cy: M.H / 2}); mexe(); return sync(); }
+      if (a === "inteira") { Object.assign(t, {zoom: con(modo) / cov(modo), sx: 1, sy: 1, cx: M.W / 2, cy: M.H / 2}); mexe(); return sync(); }
+      if (a === "centro") { t.cx = M.W / 2; t.cy = M.H / 2; mexe(); return sync(); }
+      if (a === "zera") { st[modo] = novo(modo); return sync(); }
       if (a === "pula") { acaba(null); closeModal(); return; }
       if (a === "cancela") { acaba("cancela"); closeModal(); return; }
-      if (a === "ok") { b.disabled = true; b.textContent = "Preparando…"; desenha(g);
-        cv.toBlob(bl => { if (!bl) { b.disabled = false; b.textContent = "✓ Usar assim"; return toast("Não consegui preparar a foto. Tente de novo."); }
-          acaba(new File([bl], file.name.replace(/\.[^.]+$/, "") + "-moldura.jpg", {type: "image/jpeg"})); closeModal(); }, "image/jpeg", .92); } });
+      if (a === "ok") { b.disabled = true; b.textContent = "Preparando…";
+        const gera = m => new Promise(ok => { const c = document.createElement("canvas"); c.width = MOLD[m].W; c.height = MOLD[m].H; desenha(c.getContext("2d"), m); c.toBlob(ok, "image/jpeg", .92); });
+        const [bp, bc] = await Promise.all([gera("pc"), gera("cel")]);
+        if (!bp || !bc) { b.disabled = false; b.textContent = "✓ Usar as duas versões"; return toast("Não consegui preparar a foto. Tente de novo."); }
+        const base = file.name.replace(/\.[^.]+$/, "");
+        acaba({pc: new File([bp], base + "-computador.jpg", {type: "image/jpeg"}), cel: new File([bc], base + "-celular.jpg", {type: "image/jpeg"})}); closeModal(); } });
   });
   // fechou a janela por fora (Esc ou clique fora): conta como cancelar
   const obs = new MutationObserver(() => { if (!$("#moldCv")) acaba("cancela"); });
@@ -2255,13 +2283,14 @@ document.addEventListener("change", async e => {
     const de = vao.length > 1 ? ` (${k + 1} de ${vao.length})` : "";
     let arq = vao[k];
     try {
-      const img = await abreImg(arq); const r0 = img.naturalWidth / img.naturalHeight, alvo = MOLD_W / MOLD_H;
-      const res = Math.abs(r0 - alvo) / alvo > .04 ? await editaFundo(arq, img, k, vao.length) : arq;
+      const img = await abreImg(arq);
+      const res = await editaFundo(arq, img, k, vao.length);
       URL.revokeObjectURL(img.src);
       if (res === "cancela") { pulou += vao.length - k; break; }
       if (!res) { pulou++; continue; }
-      arq = res;
-      const r = await S.assets.upload(arq, st => fala((st === "tratando" ? "Tratando a foto" : "Enviando a foto") + de + "…")); L.push(r.id); ok++; }
+      const rp = await S.assets.upload(res.pc, st => fala((st === "tratando" ? "Tratando a versão do computador" : "Enviando a versão do computador") + de + "…"));
+      const rc = await S.assets.upload(res.cel, st => fala((st === "tratando" ? "Tratando a versão do celular" : "Enviando a versão do celular") + de + "…"));
+      L.push({pc: rp.id, cel: rc.id}); ok++; }
     catch (err) { erro = (err && err.message) || "Não foi possível enviar uma das fotos."; }
   }
   if (pulou && !ok) { fala(""); return toast(pulou > 1 ? "Nenhuma foto foi adicionada." : "A foto não foi adicionada."); }
