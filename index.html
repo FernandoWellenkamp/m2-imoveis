@@ -617,6 +617,9 @@ header.top,nav.bnav{display:none!important}
 .ptitle{font-family:var(--f-display);font-weight:700;font-size:15px;color:var(--ink);margin-right:auto;display:grid;line-height:1.2}
 .pkicker{font-size:10.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);font-weight:800}
 .puser{display:grid;text-align:right;line-height:1.2}
+.ptop .psite{margin-left:auto;white-space:nowrap}
+.sprev{position:sticky;top:0;z-index:40;background:#7a5800;color:#fff;padding:8px 16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:center;font-size:14px}
+.sprev a,.sprev button{background:#fff;color:#3b2a00;border:0;border-radius:999px;padding:5px 14px;font-weight:700;text-decoration:none;cursor:pointer;font-size:13px}
 .puser small{color:var(--muted);font-size:12px}
 .pburger{display:none;background:none;border:0;color:var(--ink);cursor:pointer;padding:4px}
 .pwarn{background:var(--warn-bg);color:var(--ink);padding:10px 24px;font-size:13px}
@@ -795,7 +798,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
-const M2_VERSAO = "1.23 · 11/11/2026";
+const M2_VERSAO = "1.24 · 11/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
@@ -1537,8 +1540,8 @@ const SITE = (() => {
     const dest = all.filter(i => (i.finalidade||"").includes(S.dtab) && !isLote(i)).sort((a,b) => (b.destaque?1:0)-(a.destaque?1:0) || (b.codigo||"").localeCompare(a.codigo||"")).slice(0, 8);
     const byB = {}; all.forEach(i => { if (!i.bairro) return; const b = byB[i.bairro] || (byB[i.bairro] = {n:0, min:Infinity}); b.n++; const p = n0(i.valorVenda) || Infinity; b.min = Math.min(b.min, p); });
     const bairros = Object.entries(byB).sort((a,b) => b[1].n - a[1].n).slice(0, 12);
-    const fds = fundosLista(); const fi = fds.length ? S.heroIdx % fds.length : 0;
-    return `<section class="shero shcity${fds.length ? " temsl" : ""}">${fds.length ? `<div class="shsls" aria-hidden="true">${fds.map((f, i) => `<div class="shsl${i === fi ? " on" : ""}"><img class="shpc" src="${photoUrl(fPc(f))}" alt=""><img class="shcel" src="${photoUrl(fCel(f))}" alt=""></div>`).join("")}<div class="shov"></div></div>${fds.length > 1 ? `<div class="shdots">${fds.map((f, i) => `<button type="button" data-shdot="${i}" aria-label="Foto ${i + 1} de ${fds.length}" aria-pressed="${i === fi}"></button>`).join("")}</div>` : ""}` : ""}<div class="swrap shgrid">
+    const prevFd = !!(S.sess && isAdmin() && FD); const fds = prevFd ? FD : fundosLista(); const fi = fds.length ? S.heroIdx % fds.length : 0;
+    return `${prevFd ? `<div class="sprev" role="status"><span>👁 <b>Prévia:</b> você está vendo as fotos do fundo que ainda <b>não foram salvas</b>. Os clientes ainda veem as antigas.</span><a href="#manutencao">Voltar à Manutenção</a><button type="button" data-man="fundos-salva">💾 Salvar e publicar</button></div>` : ""}<section class="shero shcity${fds.length ? " temsl" : ""}">${fds.length ? `<div class="shsls" aria-hidden="true">${fds.map((f, i) => `<div class="shsl${i === fi ? " on" : ""}"><img class="shpc" src="${photoUrl(fPc(f))}" alt=""><img class="shcel" src="${photoUrl(fCel(f))}" alt=""></div>`).join("")}<div class="shov"></div></div>${fds.length > 1 ? `<div class="shdots">${fds.map((f, i) => `<button type="button" data-shdot="${i}" aria-label="Foto ${i + 1} de ${fds.length}" aria-pressed="${i === fi}"></button>`).join("")}</div>` : ""}` : ""}<div class="swrap shgrid">
         <div class="shtxt"><h1>${esc(c.slogan || "Encontre seu imóvel em Parnaíba com a M2")}</h1><p>Casas, apartamentos e lotes para comprar ou alugar, com atendimento de quem conhece a cidade.</p></div>
         ${searchBox()}</div>${fds.length ? "" : `<small class="shcred">Foto: Porto das Barcas, Parnaíba — Raniel Souza / Wikimedia Commons (CC BY 4.0)</small>`}</section>
       <section class="ssec"><div class="swrap"><div class="shd"><h2>Imóveis em destaque</h2>
@@ -1845,7 +1848,7 @@ function portalLayout(v, content){
   return `<div class="portal"><aside class="pside" id="pside"><a class="plogo" href="#painel">${logoImgs("")}</a><nav class="pnav" aria-label="Portal">${nav}
       <div class="pgrp"><a href="#vitrine"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${PICON.site}</svg>Ver site</a><button type="button" data-act="logout"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${PICON.sair}</svg>Sair</button></div></nav><div class="pver" title="Versão do sistema">Versão ${M2_VERSAO}</div></aside>
     <div class="pmain"><div class="ptop"><button type="button" class="pburger" data-act="pmenu" aria-label="Abrir menu"><svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor"><path d="M3 6h18v2H3zM3 11h18v2H3zM3 16h18v2H3z"/></svg></button>
-      <span class="ptitle"><span class="pkicker">Área administrativa</span>${esc(titles[v] || "Área administrativa")}</span><span class="puser"><b>${esc(S.sess.nome)}</b><small>${esc(S.sess.perfil)}</small></span></div>
+      <span class="ptitle"><span class="pkicker">Área administrativa</span>${esc(titles[v] || "Área administrativa")}</span><a class="btn sm psite" href="#vitrine" title="Ver o site como os clientes veem">🌐 Ver site</a><span class="puser"><b>${esc(S.sess.nome)}</b><small>${esc(S.sess.perfil)}</small></span></div>
       ${S.sess.padrao ? `<div class="pwarn">Você entrou com o acesso padrão. ${isAdmin() ? `<a href="#cadastro">Cadastre os usuários da equipe</a> para trocar a senha.` : ""}</div>` : ""}
       <div class="pcontent">${content}</div></div><div class="pscrim" data-act="pmenu"></div></div>`;
 }
@@ -2132,16 +2135,17 @@ function vManut(){
         <div class="f c2"><label for="mtCor">Cor da faixa</label><input type="color" id="mtCor" value="${hexOk(MT.cor) ? MT.cor : "#c59019"}" style="width:56px;height:40px;padding:2px;border:1px solid var(--line);border-radius:8px;background:var(--surface)"></div></div>
       <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" data-man="tema-outra">🔀 Outra arrumação</button><button class="btn" data-man="tema-msg">Atualizar mensagem e cor</button><button class="btn pri" data-man="tema-usa">✓ Usar esta logo</button><button class="btn" data-man="tema-descarta">Descartar</button></span>
     </div>` : ""}</section>`; })()}
-  ${(() => { const fds = fundosLista();
+  ${(() => { const fds = fundosEdit();
     const th = (src, i, cel) => `<div style="position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/7;background:#1d3b85"><img src="${src}" alt="Foto ${i + 1} do fundo (computador)" style="width:100%;height:100%;object-fit:cover;display:block">
       ${cel ? `<img src="${cel}" alt="Foto ${i + 1} do fundo (celular)" title="Versão do celular" style="position:absolute;right:6px;bottom:6px;height:62%;aspect-ratio:9/17;object-fit:cover;border:2px solid #fff;border-radius:6px;box-shadow:0 2px 6px rgba(0,0,0,.4)">` : ""}
       <span style="position:absolute;left:6px;top:6px;background:rgba(0,0,0,.6);color:#fff;border-radius:6px;padding:1px 7px;font-size:12px;font-weight:600">${i + 1}</span>
-      ${fds.length ? `<span style="position:absolute;right:6px;top:6px;display:flex;gap:4px">${i > 0 ? `<button type="button" class="btn sm" data-fdmove="${i}" data-dir="-1" title="Mostrar antes" aria-label="Mover a foto ${i + 1} para antes">◀</button>` : ""}${i < fds.length - 1 ? `<button type="button" class="btn sm" data-fdmove="${i}" data-dir="1" title="Mostrar depois" aria-label="Mover a foto ${i + 1} para depois">▶</button>` : ""}<button type="button" class="btn sm danger" data-fddel="${i}" title="Excluir esta foto" aria-label="Excluir a foto ${i + 1}">✕</button></span>` : ""}</div>`;
+      ${fds.length ? `<span style="position:absolute;right:6px;top:6px;display:flex;gap:4px">${i > 0 ? `<button type="button" class="btn sm" data-fdmove="${i}" data-dir="-1" title="Mostrar antes" aria-label="Mover a foto ${i + 1} para antes">◀</button>` : ""}${i < fds.length - 1 ? `<button type="button" class="btn sm" data-fdmove="${i}" data-dir="1" title="Mostrar depois" aria-label="Mover a foto ${i + 1} para depois">▶</button>` : ""}<button type="button" class="btn sm" data-fdedit="${i}" title="Ajustar esta foto" aria-label="Ajustar a foto ${i + 1}">✏️</button><button type="button" class="btn sm danger" data-fddel="${i}" title="Excluir esta foto" aria-label="Excluir a foto ${i + 1}">✕</button></span>` : ""}</div>`;
     return `<section class="panel" style="margin-bottom:16px"><h2>Fotos de fundo da página inicial</h2>
-    <p style="color:var(--muted);margin:4px 0 12px">São as fotos grandes atrás da busca, na primeira tela do site. Você pode ter de 1 a ${FUNDOS_MAX} fotos: com uma só, ela fica parada; com mais de uma, elas se revezam a cada ${FUNDO_SEG} segundos, na ordem abaixo. Ao adicionar, você ajusta a versão do <b>computador</b> e a do <b>celular</b> (a miniatura em pé no canto). Elas são reduzidas e tratadas automaticamente. O fundo precisa ter sempre pelo menos 1 foto.</p>
+    <p style="color:var(--muted);margin:4px 0 12px">São as fotos grandes atrás da busca, na primeira tela do site. Você pode ter de 1 a ${FUNDOS_MAX} fotos: com uma só, ela fica parada; com mais de uma, elas se revezam a cada ${FUNDO_SEG} segundos, na ordem abaixo. Ao adicionar, você ajusta a versão do <b>computador</b> e a do <b>celular</b> (a miniatura em pé no canto). Elas são reduzidas e tratadas automaticamente. O fundo precisa ter sempre pelo menos 1 foto. <b>Nada muda no site até você clicar em Salvar.</b></p>
+    ${FD ? `<div class="note" style="margin:0 0 12px;background:var(--warn-bg);border-color:var(--warn)"><span><b>Alterações ainda não publicadas.</b> O site continua com as fotos antigas até você clicar em Salvar.</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" data-man="fundos-descarta">Descartar alterações</button><button class="btn sm pri" data-man="fundos-salva">💾 Salvar e publicar</button></span></div>` : ""}
     ${fds.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px">${fds.map((f, i) => th(photoUrl(fPc(f)), i, typeof f === "string" ? "" : photoUrl(fCel(f)))).join("")}</div>`
       : `<div style="max-width:420px">${th("https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Caminho_no_Porto_das_Barcas.jpg/960px-Caminho_no_Porto_das_Barcas.jpg", 0)}</div><small style="color:var(--muted)">Hoje aparece a foto original (Porto das Barcas). Ao adicionar suas fotos, ela sai e não volta mais: o fundo passa a ser só as suas fotos.</small>`}
-    <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center">${fds.length < FUNDOS_MAX ? `<button class="btn sm pri" data-man="fundo">+ Adicionar ${fds.length ? "fotos" : "suas fotos"}</button>` : `<span style="color:var(--muted)">Limite de ${FUNDOS_MAX} fotos atingido. Exclua uma para colocar outra.</span>`}<span style="color:var(--muted)">${fds.length}/${FUNDOS_MAX} fotos</span><span id="mfundoSt" style="color:var(--muted)"></span></span></section>`; })()}
+    <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center">${fds.length < FUNDOS_MAX ? `<button class="btn sm pri" data-man="fundo">+ Adicionar ${fds.length ? "fotos" : "suas fotos"}</button>` : `<span style="color:var(--muted)">Limite de ${FUNDOS_MAX} fotos atingido. Exclua uma para colocar outra.</span>`}<span style="color:var(--muted)">${fds.length}/${FUNDOS_MAX} fotos</span><span style="flex:1"></span>${FD ? `<a class="btn" href="#vitrine">👁 Ver prévia no site</a>` : ""}<button class="btn pri" data-man="fundos-salva" ${FD ? "" : "disabled title=\"Nada para salvar\""}>💾 Salvar e publicar</button><span id="mfundoSt" style="color:var(--muted)"></span></span></section>`; })()}
   <section class="panel"><h2>Cores</h2>
     <p style="color:var(--muted);margin:4px 0 12px">Mude a cor, confira a tela e clique em <b>Salvar cores</b>. No modo escuro do celular, o sistema clareia a cor principal sozinho para continuar legível.</p>
     <div class="form">${cor("cor1", "Cor principal", "Botões, títulos, links e destaques (hoje o azul da M2).")}${cor("cor2", "Cor de destaque", "Detalhes em dourado.")}${cor("cor3", "Cor do menu lateral", "Fundo do menu da área administrativa.")}</div>
@@ -2153,11 +2157,13 @@ const MOLD = {pc: {W: 1920, H: 720, nome: "Computador"}, cel: {W: 720, H: 1360, 
 const MOLD_W = MOLD.pc.W, MOLD_H = MOLD.pc.H;
 function abreImg(file){ return new Promise((ok, no) => { const u = URL.createObjectURL(file); const i = new Image();
   i.onload = () => ok(i); i.onerror = () => { URL.revokeObjectURL(u); no({message: `Não consegui abrir “${file.name}”. Use JPG ou PNG.`}); }; i.src = u; }); }
-function editaFundo(file, img, k, n){ return new Promise(resolve => {
+function editaFundo(file0, img, k, n, aj, editar){ return new Promise(resolve => {
+  const file = typeof file0 === "string" ? {name: file0} : file0;
   const iw = img.naturalWidth, ih = img.naturalHeight;
   const cov = m => Math.max(MOLD[m].W / iw, MOLD[m].H / ih), con = m => Math.min(MOLD[m].W / iw, MOLD[m].H / ih);
   const novo = m => ({zoom: 1, sx: 1, sy: 1, cx: MOLD[m].W / 2, cy: MOLD[m].H / 2, mexeu: false});
   const st = {pc: novo("pc"), cel: novo("cel")}; let borda = "desfoque", cor = "#0f1c3f", modo = "pc";
+  if (aj) { ["pc", "cel"].forEach(m => { if (aj[m]) Object.assign(st[m], aj[m]); }); if (aj.borda) borda = aj.borda; if (hexOk(aj.cor)) cor = aj.cor; }
   let fim = false; const acaba = v => { if (fim) return; fim = true; obs.disconnect(); resolve(v); };
   const desenha = (g, m) => { const {W, H} = MOLD[m], t = st[m], cover = cov(m);
     g.clearRect(0, 0, W, H);
@@ -2167,7 +2173,7 @@ function editaFundo(file, img, k, n){ return new Promise(resolve => {
     g.drawImage(img, t.cx - w / 2, t.cy - h / 2, w, h); };
   const pct = v => Math.round(v * 100) + "%";
   const aba = m => `<button type="button" class="btn sm" data-mold="m-${m}" aria-pressed="${m === "pc"}">${m === "pc" ? "🖥️" : "📱"} ${MOLD[m].nome}<span class="mok" data-mok="${m}"></span></button>`;
-  openModal(`<div class="mh"><div><span class="lbl">Foto ${k + 1} de ${n} · ${esc(file.name)}</span><h2>Encaixe a foto na moldura</h2></div><button type="button" class="x" aria-label="Fechar" data-mold="cancela">×</button></div>
+  openModal(`<div class="mh"><div><span class="lbl">Foto ${k + 1} de ${n} · ${esc(file.name)}</span><h2>${editar ? "Ajuste a foto na moldura" : "Encaixe a foto na moldura"}</h2></div><button type="button" class="x" aria-label="Fechar" data-mold="cancela">×</button></div>
     <div class="mb"><p style="margin:0 0 10px;color:var(--muted)">A foto tem duas versões: uma para o <b>computador</b> (deitada) e outra para o <b>celular</b> (em pé). Escolha a aba, <b>arraste a foto</b> para posicionar e use os controles para aumentar, diminuir, alargar ou encurtar. A moldura mostra exatamente o que aparece no site.</p>
       <div class="seg" role="group" aria-label="Versão" style="margin-bottom:10px;display:flex;gap:6px;flex-wrap:wrap">${aba("pc")}${aba("cel")}</div>
       <div class="mold" id="mold"><canvas id="moldCv" width="${MOLD.pc.W}" height="${MOLD.pc.H}"></canvas><div class="mov"></div><div class="mcel"><span>celular</span></div></div>
@@ -2180,7 +2186,7 @@ function editaFundo(file, img, k, n){ return new Promise(resolve => {
       </div>
       <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button type="button" class="btn sm" data-mold="cobre">Preencher a moldura</button><button type="button" class="btn sm" data-mold="inteira">Mostrar a foto inteira</button><button type="button" class="btn sm" data-mold="centro">Centralizar</button><button type="button" class="btn sm" data-mold="zera">Desfazer ajustes</button></div>
     </div>
-    <div class="mf"><button type="button" class="btn" data-mold="pula">Pular esta foto</button><div class="r"><button type="button" class="btn" data-mold="cancela">Cancelar ${n > 1 ? "todas" : ""}</button><button type="button" class="btn pri" data-mold="ok">✓ Usar as duas versões</button></div></div>`, ov => {
+    <div class="mf">${editar ? "" : `<button type="button" class="btn" data-mold="pula">Pular esta foto</button>`}<div class="r"><button type="button" class="btn" data-mold="cancela">Cancelar${!editar && n > 1 ? " todas" : ""}</button><button type="button" class="btn pri" data-mold="ok">✓ Usar as duas versões</button></div></div>`, ov => {
     const cv = $("#moldCv", ov), g = cv.getContext("2d"), box = $("#mold", ov);
     const sync = () => { const t = st[modo];
       $("#mZoom", ov).min = Math.max(10, Math.floor(con(modo) / cov(modo) * 100 * .6));
@@ -2192,6 +2198,7 @@ function editaFundo(file, img, k, n){ return new Promise(resolve => {
       ov.querySelectorAll("[data-mold^='m-']").forEach(b => b.setAttribute("aria-pressed", b.dataset.mold === "m-" + m));
       $("#mDica", ov).textContent = m === "pc" ? "A faixa tracejada no meio é o que sobra da versão do computador num celular antigo. A versão do celular é ajustada na outra aba." : "É assim que a foto aparece no celular, atrás da busca. Se você não mexer aqui, fica a foto preenchendo a tela, centralizada.";
       sync(); };
+    $("#mBorda", ov).value = borda; $("#mCor", ov).value = cor; $("#mCor", ov).hidden = borda !== "cor";
     trocaModo("pc");
     const mexe = () => { st[modo].mexeu = true; };
     ov.addEventListener("input", e => { const id = e.target.id, t = st[modo];
@@ -2216,29 +2223,64 @@ function editaFundo(file, img, k, n){ return new Promise(resolve => {
         const [bp, bc] = await Promise.all([gera("pc"), gera("cel")]);
         if (!bp || !bc) { b.disabled = false; b.textContent = "✓ Usar as duas versões"; return toast("Não consegui preparar a foto. Tente de novo."); }
         const base = file.name.replace(/\.[^.]+$/, "");
-        acaba({pc: new File([bp], base + "-computador.jpg", {type: "image/jpeg"}), cel: new File([bc], base + "-celular.jpg", {type: "image/jpeg"})}); closeModal(); } });
+        const so = t => ({zoom: t.zoom, sx: t.sx, sy: t.sy, cx: Math.round(t.cx), cy: Math.round(t.cy), mexeu: !!t.mexeu});
+        acaba({pc: new File([bp], base + "-computador.jpg", {type: "image/jpeg"}), cel: new File([bc], base + "-celular.jpg", {type: "image/jpeg"}), aj: {pc: so(st.pc), cel: so(st.cel), borda, cor}}); closeModal(); } });
   });
   // fechou a janela por fora (Esc ou clique fora): conta como cancelar
   const obs = new MutationObserver(() => { if (!$("#moldCv")) acaba("cancela"); });
   obs.observe($("#modalRoot"), {childList: true});
 }); }
 let manAlvo = null;
-document.addEventListener("click", e => {
-  const d = e.target.closest("[data-fddel],[data-fdmove]"); if (!d) return;
+/* Rascunho das fotos do fundo: nada vai para o site até o administrador clicar em Salvar */
+let FD = null;
+const fundosEdit = () => FD || fundosLista();
+const fdMexe = L => { FD = L; render(); };
+window.addEventListener("beforeunload", e => { if (FD) { e.preventDefault(); e.returnValue = ""; } });
+async function fundosSalva(b){
+  if (!FD) return toast("Não há alterações para salvar.");
+  if (!FD.length) return toast("O fundo precisa ter pelo menos 1 foto.");
+  if (b) { b.disabled = true; b.textContent = "Salvando…"; }
+  const novo = {...(S.apar || {}), fundos: FD, alteradoPor: S.sess?.nome || "", alteradoEm: new Date().toISOString()}; delete novo.fundo;
+  try { await S.db.doc("config/aparencia").set(novo); S.apar = novo; FD = null; S.heroIdx = 0; applyApar(); render(); toast("Fotos do fundo salvas: o site já mostra as novas"); }
+  catch (err) { if (b) { b.disabled = false; b.textContent = "💾 Salvar e publicar"; } toast("Não foi possível salvar: " + ((err && err.message) || "tente de novo")); }
+}
+const fdUrl = async id => String(id).startsWith("fs:") ? await fsFoto(String(id).slice(3)) : photoUrl(id);
+document.addEventListener("click", async e => {
+  const d = e.target.closest("[data-fddel],[data-fdmove],[data-fdedit]"); if (!d) return;
   if (!isAdmin()) return toast("Só o administrador pode mudar a aparência.");
-  const L = [...fundosLista()];
+  const L = [...fundosEdit()];
   if (d.dataset.fddel != null) { const i = +d.dataset.fddel;
     if (L.length <= 1) return toast("O fundo precisa ter pelo menos 1 foto. Adicione a nova foto primeiro e depois exclua esta.");
-    if (!confirm(`Excluir a foto ${i + 1} do fundo?`)) return; L.splice(i, 1); S.heroIdx = 0;
-    return salvaApar({fundos: L.length ? L : null, fundo: null}, L.length ? "Foto excluída do fundo" : "Sem fotos suas: voltou a foto original"); }
-  const i = +d.dataset.fdmove, j = i + (+d.dataset.dir); if (j < 0 || j >= L.length) return; [L[i], L[j]] = [L[j], L[i]];
-  return salvaApar({fundos: L, fundo: null}, "Ordem das fotos alterada"); });
+    if (!confirm(`Excluir a foto ${i + 1} do fundo? (Só sai do site quando você clicar em Salvar.)`)) return; L.splice(i, 1);
+    fdMexe(L); return toast("Foto excluída. Clique em Salvar para publicar."); }
+  if (d.dataset.fdmove != null) { const i = +d.dataset.fdmove, j = i + (+d.dataset.dir); if (j < 0 || j >= L.length) return; [L[i], L[j]] = [L[j], L[i]];
+    return fdMexe(L); }
+  // editar uma foto já escolhida: reabre a moldura com os ajustes guardados
+  const i = +d.dataset.fdedit, f = L[i]; if (!f) return;
+  if (!S.assets) return toast("O envio de fotos não está disponível aqui.");
+  const fala = t => { const x = $("#mfundoSt"); if (x) x.textContent = t; };
+  const fonte = typeof f === "string" ? f : (f.orig || f.pc || f.cel);
+  try {
+    d.disabled = true; fala("Abrindo a foto…");
+    const u = await fdUrl(fonte); if (!u) throw {message: "Não consegui abrir essa foto."};
+    const img = await new Promise((ok, no) => { const im = new Image(); im.onload = () => ok(im); im.onerror = () => no({message: "Não consegui abrir essa foto."}); im.src = u; });
+    fala(""); d.disabled = false;
+    const res = await editaFundo(`Foto ${i + 1}`, img, i, L.length, typeof f === "string" ? null : f.aj, true);
+    if (!res || res === "cancela") return;
+    const rp = await S.assets.upload(res.pc, st => fala(st === "tratando" ? "Tratando a versão do computador…" : "Enviando a versão do computador…"));
+    const rc = await S.assets.upload(res.cel, st => fala(st === "tratando" ? "Tratando a versão do celular…" : "Enviando a versão do celular…"));
+    const L2 = [...fundosEdit()]; L2[i] = {...(typeof f === "string" ? {} : f), orig: fonte, pc: rp.id, cel: rc.id, aj: res.aj};
+    fala(""); fdMexe(L2); toast("Foto ajustada. Clique em Salvar para publicar.");
+  } catch (err) { d.disabled = false; fala(""); toast((err && err.message) || "Não foi possível ajustar a foto."); }
+});
 document.addEventListener("click", e => { const c = e.target.closest("[data-mtchip]"); if (!c) return; const i = $("#mtTema"); if (i) { i.value = c.dataset.mtchip; i.classList.remove("bad"); i.focus(); } });
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-man]"); if (!b) return;
   if (!isAdmin()) return toast("Só o administrador pode mudar a aparência.");
   const m = b.dataset.man;
-  if (m === "fundo") { if (fundosLista().length >= FUNDOS_MAX) return toast(`Limite de ${FUNDOS_MAX} fotos. Exclua uma para colocar outra.`); const inp = $("#manFundos"); inp.value = ""; inp.click(); return; }
+  if (m === "fundos-salva") return fundosSalva(b);
+  if (m === "fundos-descarta") { if (!confirm("Descartar as alterações nas fotos do fundo? O site continua como está.")) return; FD = null; render(); return toast("Alterações descartadas"); }
+  if (m === "fundo") { if (fundosEdit().length >= FUNDOS_MAX) return toast(`Limite de ${FUNDOS_MAX} fotos. Exclua uma para colocar outra.`); const inp = $("#manFundos"); inp.value = ""; inp.click(); return; }
   if (m === "logo" || m === "logoEscuro") { manAlvo = m; const inp = $("#manIn"); inp.value = ""; inp.click(); return; }
   if (m === "tema-cria") { const tx = ($("#mtTema").value || "").trim(), ate = $("#mtAte").value || "";
     if (!tx) { $("#mtTema").classList.add("bad"); $("#mtTema").focus(); return toast("Escreva o tema da logo (ex.: Páscoa)."); }
@@ -2272,7 +2314,7 @@ document.addEventListener("change", async e => {
   if (e.target.id !== "manFundos") return;
   const files = [...(e.target.files || [])]; if (!files.length) return;
   if (!S.assets) return toast("O envio de fotos não está disponível aqui.");
-  const L = [...fundosLista()]; const cabe = FUNDOS_MAX - L.length;
+  const L = [...fundosEdit()]; const cabe = FUNDOS_MAX - L.length;
   const fotos = files.filter(f => /^image\//.test(f.type));
   if (fotos.length < files.length) toast("Alguns arquivos não eram fotos e foram ignorados.");
   if (!fotos.length) return;
@@ -2290,12 +2332,13 @@ document.addEventListener("change", async e => {
       if (!res) { pulou++; continue; }
       const rp = await S.assets.upload(res.pc, st => fala((st === "tratando" ? "Tratando a versão do computador" : "Enviando a versão do computador") + de + "…"));
       const rc = await S.assets.upload(res.cel, st => fala((st === "tratando" ? "Tratando a versão do celular" : "Enviando a versão do celular") + de + "…"));
-      L.push({pc: rp.id, cel: rc.id}); ok++; }
+      const ro = await S.assets.upload(arq, st => fala("Guardando a foto original" + de + "…"));
+      L.push({pc: rp.id, cel: rc.id, orig: ro.id, aj: res.aj}); ok++; }
     catch (err) { erro = (err && err.message) || "Não foi possível enviar uma das fotos."; }
   }
   if (pulou && !ok) { fala(""); return toast(pulou > 1 ? "Nenhuma foto foi adicionada." : "A foto não foi adicionada."); }
   fala("");
-  if (ok) await salvaApar({fundos: L, fundo: null}, ok > 1 ? `${ok} fotos adicionadas ao fundo` : "Foto adicionada ao fundo");
+  if (ok) { fdMexe(L); toast((ok > 1 ? `${ok} fotos adicionadas` : "Foto adicionada") + ". Clique em Salvar para publicar."); }
   if (sobra > 0) toast(`O limite é ${FUNDOS_MAX} fotos: ${sobra} ${sobra > 1 ? "fotos ficaram" : "foto ficou"} de fora.`);
   if (erro) toast(erro);
 });
