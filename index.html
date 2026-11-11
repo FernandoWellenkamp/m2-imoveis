@@ -767,7 +767,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
-const M2_VERSAO = "1.17 · 11/11/2026";
+const M2_VERSAO = "1.18 · 11/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
@@ -1052,6 +1052,7 @@ const VIEWS = [
   {id:"captacao", l:"Captação", int:1},
   {id:"fichas", l:"Fichas", int:1},
   {id:"cadastro", l:"Cadastro interno", int:1},
+  {id:"manutencao", l:"Manutenção", int:1},
   {id:"vitrine", l:"Site"},
   {id:"acesso", l:"Área administrativa"},
 ];
@@ -1085,7 +1086,7 @@ function render(){
   renderNav();
   const v = curView();
   const el = $("#view");
-  const fn = {painel:vPainel, imoveis:vImoveis, proprietarios:vProp, locacoes:vLoc, interessados:vLeads, negocios:vNeg, mensagens:vMensagens, captacao:vCaptacao, fichas:vFichas, cadastro:vCadastro}[v];
+  const fn = {painel:vPainel, imoveis:vImoveis, proprietarios:vProp, locacoes:vLoc, interessados:vLeads, negocios:vNeg, mensagens:vMensagens, captacao:vCaptacao, fichas:vFichas, cadastro:vCadastro, manutencao:vManut}[v];
   const site = v === "vitrine" || v === "acesso";
   document.body.classList.toggle("sitemode", site);
   document.body.classList.toggle("portalmode", !site);
@@ -1793,12 +1794,12 @@ const isAdmin = () => S.sess && S.sess.perfil === "Administrador";
 const PNAV = [
   {g:"Atendimento", items:[["painel","Início"],["mensagens","Mensagens"],["interessados","Leads"],["fichas","Fichas"]]},
   {g:"Imóveis", items:[["captacao","Captação"],["imoveis","Imóveis"],["proprietarios","Proprietários"],["locacoes","Locações"],["negocios","Visitas e negócios"]]},
-  {g:"Administração", items:[["cadastro","Cadastro interno"]]},
+  {g:"Administração", items:[["cadastro","Cadastro interno"],["manutencao","Manutenção"]]},
 ];
 const PICON = {
   painel:ICON.painel, imoveis:ICON.imoveis, proprietarios:ICON.proprietarios, locacoes:ICON.locacoes, interessados:ICON.interessados, negocios:ICON.negocios,
   mensagens:'<path d="M3 5h18v12H8l-5 4z"/>', fichas:'<path d="M6 2h9l5 5v15H6zM14 3v5h5M9 12h8v2H9zm0 4h8v2H9z"/>',
-  captacao:'<path d="M12 3l9 7h-3v10h-5v-6h-2v6H6V10H3zM16 3h3v4"/>', cadastro:'<path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5zm0 6a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm-4 9c.6-2 2.2-3 4-3s3.4 1 4 3z"/>',
+  captacao:'<path d="M12 3l9 7h-3v10h-5v-6h-2v6H6V10H3zM16 3h3v4"/>', manutencao:'<path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>', cadastro:'<path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5zm0 6a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm-4 9c.6-2 2.2-3 4-3s3.4 1 4 3z"/>',
   site:'<path d="M3 4h18l-1 5H4zM4 10h16v10H4zM9 14h6v6H9z"/>', sair:'<path d="M10 3h9v18h-9v-2h7V5h-7zM8 7l1.4 1.4L6.8 11H15v2H6.8l2.6 2.6L8 17l-5-5z"/>',
 };
 function badgeFor(id){
@@ -1915,6 +1916,120 @@ function vCadastro(){
   </tbody></table></div>`}
   <p class="note" style="margin-top:16px">${window.M2_AUTH ? "O login e as senhas ficam no sistema de autenticação do Google (Firebase). Para trocar a senha, cada pessoa usa “Esqueci minha senha” na tela de login." : "As senhas ficam guardadas de forma embaralhada (hash). Nesta versão de demonstração o login protege as telas, mas não substitui a segurança de um servidor próprio."}</p>`;
 }
+
+/* ---------- Manutenção: logo, foto de fundo e cores (config/aparencia) ---------- */
+const APAR_PADRAO = {cor1:"#1d3b85", cor2:"#c59019", cor3:"#0f1c3f"};
+let LOGO_ORIG = null;
+function hexOk(c){ return /^#[0-9a-f]{6}$/i.test(c || ""); }
+function inkFor(hex){ const n = parseInt(hex.slice(1), 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255;
+  const L = [r,g,b].map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return (.2126*L[0] + .7152*L[1] + .0722*L[2]) > .45 ? "#111111" : "#ffffff"; }
+let fundoUrl = null, fundoDe = null;
+function applyApar(prev){
+  const a = {...(S.apar || {}), ...(prev || {})};
+  const imgs = document.querySelectorAll(".brand img");
+  if (!LOGO_ORIG && imgs.length) LOGO_ORIG = [...imgs].map(i => i.src);
+  imgs.forEach((im, i) => { const novo = im.classList.contains("logo-d") ? (a.logoEscuro || a.logo) : a.logo; im.src = novo || (LOGO_ORIG && LOGO_ORIG[i]) || im.src; });
+  let css = "";
+  const c1 = hexOk(a.cor1) ? a.cor1 : null, c2 = hexOk(a.cor2) ? a.cor2 : null, c3 = hexOk(a.cor3) ? a.cor3 : null;
+  if (c1) { const claro = `color-mix(in srgb, ${c1} 45%, white)`;
+    css += `:root{--accent:${c1};--accent-ink:${inkFor(c1)}}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--accent:${claro};--accent-ink:#0f1a2a}}
+:root[data-theme="dark"]{--accent:${claro};--accent-ink:#0f1a2a}
+.pgrp a[aria-current="page"]{background:${c1};color:${inkFor(c1)}}
+.shero,.shero.shcity{background-color:${c1}}`; }
+  if (c2) css += `:root{--gold:${c2};--warm:color-mix(in srgb, ${c2} 85%, black)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--gold:color-mix(in srgb, ${c2} 70%, white);--warm:color-mix(in srgb, ${c2} 70%, white)}}
+:root[data-theme="dark"]{--gold:color-mix(in srgb, ${c2} 70%, white);--warm:color-mix(in srgb, ${c2} 70%, white)}`;
+  if (c3) css += `.pside{background:${c3}}`;
+  if (a.fundo) {
+    if (fundoDe !== a.fundo) { fundoDe = a.fundo; fundoUrl = null;
+      const id = String(a.fundo);
+      (id.startsWith("fs:") ? fsFoto(id.slice(3)) : Promise.resolve(photoUrl(id))).then(u => { if (fundoDe === id) { fundoUrl = u; applyApar(prev); } }); }
+    if (fundoUrl) css += `.shero.shcity{--hero:url("${fundoUrl}") !important}
+@media (max-width:860px){.shero.shcity{--hero:url("${fundoUrl}") !important}}
+.shcred{display:none}`;
+  }
+  let st = document.getElementById("m2tema"); if (!st) { st = document.createElement("style"); st.id = "m2tema"; }
+  document.body.appendChild(st); // fica depois do <style> do sistema para valer por cima dele
+  st.textContent = css;
+}
+function logoReduz(file){ return new Promise((ok, no) => {
+  if (!/^image\//.test(file.type)) return no({message:"Escolha uma imagem (PNG, JPG, WEBP ou SVG)."});
+  const r = new FileReader(); r.onerror = () => no({message:"Não consegui ler o arquivo."});
+  r.onload = () => { const img = new Image(); img.onerror = () => no({message:"Não consegui abrir essa imagem. Tente um PNG ou JPG."});
+    img.onload = () => { const k = Math.min(1, 700 / (img.naturalWidth || 700), 300 / (img.naturalHeight || 300));
+      const c = document.createElement("canvas"); c.width = Math.max(1, Math.round((img.naturalWidth || 700) * k)); c.height = Math.max(1, Math.round((img.naturalHeight || 300) * k));
+      c.getContext("2d").drawImage(img, 0, 0, c.width, c.height);
+      let u = c.toDataURL("image/webp", .92); if (!u.startsWith("data:image/webp")) u = c.toDataURL("image/png");
+      if (u.length > 300000) return no({message:"A logo ficou grande demais. Use uma imagem mais simples ou menor."});
+      ok(u); };
+    img.src = r.result; };
+  r.readAsDataURL(file); }); }
+async function salvaApar(mud, msg){
+  const novo = {...(S.apar || {}), ...mud}; Object.keys(novo).forEach(k => { if (novo[k] == null || novo[k] === "") delete novo[k]; });
+  novo.alteradoPor = S.sess?.nome || ""; novo.alteradoEm = new Date().toISOString();
+  try { await S.db.doc("config/aparencia").set(novo); S.apar = novo; applyApar(); render(); toast(msg); }
+  catch (e) { toast("Não foi possível salvar: " + (e && e.message || "tente de novo")); applyApar(); }
+}
+function vManut(){
+  if (!isAdmin()) return `<div class="emptybox"><b>Só administradores</b><span>Peça a um administrador para mudar a aparência do sistema.</span></div>`;
+  const a = S.apar || {};
+  const logos = LOGO_ORIG || [...document.querySelectorAll(".brand img")].map(i => i.src);
+  const cor = (k, l, dica) => `<div class="f c2"><label for="mc_${k}">${l}</label><span style="display:flex;gap:8px;align-items:center"><input type="color" id="mc_${k}" data-mcor="${k}" value="${hexOk(a[k]) ? a[k] : APAR_PADRAO[k]}" style="width:56px;height:40px;padding:2px;border:1px solid var(--line);border-radius:8px;background:var(--surface)"><span class="mono" id="mc_${k}_t">${hexOk(a[k]) ? a[k] : APAR_PADRAO[k]}</span></span><small style="color:var(--muted)">${dica}</small></div>`;
+  const prev = (src, fundo) => `<div style="background:${fundo};border:1px solid var(--line);border-radius:10px;padding:14px;display:grid;place-items:center;min-height:90px"><img src="${src}" alt="" style="max-height:70px;max-width:100%"></div>`;
+  return `<div class="head"><div><h1>Manutenção</h1><p>Aparência do sistema e do site: logo, foto de fundo e cores</p></div></div>
+  <section class="panel" style="margin-bottom:16px"><h2>Logo</h2>
+    <p style="color:var(--muted);margin:4px 0 12px">Aparece no topo do site, no rodapé e no menu da área administrativa. Use de preferência um PNG com fundo transparente.</p>
+    <div class="form">
+      <div class="f c3"><label>Logo principal (fundo claro)</label>${prev(a.logo || logos[0], "#ffffff")}
+        <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" data-man="logo">Trocar logo</button>${a.logo ? `<button class="btn sm" data-man="logo-orig">Voltar à original</button>` : ""}</span></div>
+      <div class="f c3"><label>Logo para fundo escuro (menu e rodapé)</label>${prev(a.logoEscuro || a.logo || logos[1] || logos[0], hexOk(a.cor3) ? a.cor3 : APAR_PADRAO.cor3)}
+        <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" data-man="logoEscuro">Trocar logo do fundo escuro</button>${a.logoEscuro ? `<button class="btn sm" data-man="logoEscuro-orig">Usar a mesma da principal</button>` : ""}</span>
+        <small style="color:var(--muted)">Opcional. Se não enviar, o sistema usa a logo principal.</small></div>
+    </div></section>
+  <section class="panel" style="margin-bottom:16px"><h2>Foto de fundo da página inicial</h2>
+    <p style="color:var(--muted);margin:4px 0 12px">É a foto grande atrás da busca, na primeira tela do site. Use uma foto na horizontal (deitada), de boa qualidade. Ela é reduzida e tratada automaticamente.</p>
+    <div style="border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/5;background:${a.fundo && fundoUrl ? `url('${fundoUrl}') center/cover` : `url('https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Caminho_no_Porto_das_Barcas.jpg/960px-Caminho_no_Porto_das_Barcas.jpg') center 60%/cover`},#1d3b85;max-width:720px"></div>
+    <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn sm" data-man="fundo">Trocar foto de fundo</button>${a.fundo ? `<button class="btn sm" data-man="fundo-orig">Voltar à foto original (Porto das Barcas)</button>` : ""}<span id="mfundoSt" style="color:var(--muted);align-self:center"></span></span></section>
+  <section class="panel"><h2>Cores</h2>
+    <p style="color:var(--muted);margin:4px 0 12px">Mude a cor, confira a tela e clique em <b>Salvar cores</b>. No modo escuro do celular, o sistema clareia a cor principal sozinho para continuar legível.</p>
+    <div class="form">${cor("cor1", "Cor principal", "Botões, títulos, links e destaques (hoje o azul da M2).")}${cor("cor2", "Cor de destaque", "Detalhes em dourado.")}${cor("cor3", "Cor do menu lateral", "Fundo do menu da área administrativa.")}</div>
+    <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn pri" data-man="cores">Salvar cores</button><button class="btn" data-man="cores-desfaz">Desfazer mudanças</button>${(a.cor1 || a.cor2 || a.cor3) ? `<button class="btn" data-man="cores-orig">Voltar às cores originais da M2</button>` : ""}</span></section>
+  <input type="file" id="manIn" accept="image/*" hidden>`;
+}
+let manAlvo = null;
+document.addEventListener("click", e => {
+  const b = e.target.closest("[data-man]"); if (!b) return;
+  if (!isAdmin()) return toast("Só o administrador pode mudar a aparência.");
+  const m = b.dataset.man;
+  if (m === "logo" || m === "logoEscuro" || m === "fundo") { manAlvo = m; const inp = $("#manIn"); inp.value = ""; inp.click(); return; }
+  if (m === "logo-orig") return salvaApar({logo:null}, "Logo original de volta");
+  if (m === "logoEscuro-orig") return salvaApar({logoEscuro:null}, "Pronto: o fundo escuro usa a logo principal");
+  if (m === "fundo-orig") return salvaApar({fundo:null}, "Foto de fundo original de volta");
+  if (m === "cores-orig") { if (!confirm("Voltar às cores originais da M2 (azul e dourado)?")) return; return salvaApar({cor1:null, cor2:null, cor3:null}, "Cores originais de volta"); }
+  if (m === "cores-desfaz") { applyApar(); render(); return toast("Mudanças desfeitas"); }
+  if (m === "cores") { const v = {}; for (const k of ["cor1","cor2","cor3"]) { const x = $("#mc_" + k).value; if (!hexOk(x)) return toast("Escolha uma cor válida."); v[k] = x.toLowerCase() === APAR_PADRAO[k] ? null : x; }
+    return salvaApar(v, "Cores salvas"); }
+});
+document.addEventListener("input", e => { const k = e.target.dataset && e.target.dataset.mcor; if (!k) return;
+  const t = $("#mc_" + k + "_t"); if (t) t.textContent = e.target.value;
+  applyApar({cor1:$("#mc_cor1").value, cor2:$("#mc_cor2").value, cor3:$("#mc_cor3").value}); });
+document.addEventListener("change", async e => {
+  if (e.target.id !== "manIn") return; const file = e.target.files && e.target.files[0]; if (!file || !manAlvo) return;
+  const alvo = manAlvo; manAlvo = null;
+  try {
+    if (alvo === "fundo") {
+      if (!/^image\//.test(file.type)) return toast("Escolha uma foto (JPG ou PNG).");
+      if (!S.assets) return toast("O envio de fotos não está disponível aqui.");
+      const stEl = () => $("#mfundoSt"); const fala = t => { const x = stEl(); if (x) x.textContent = t; };
+      fala("Tratando a foto…");
+      const r = await S.assets.upload(file, st => fala(st === "tratando" ? "Tratando a foto…" : "Enviando a foto…"));
+      fala(""); return salvaApar({fundo: r.id}, "Foto de fundo trocada");
+    }
+    const u = await logoReduz(file);
+    return salvaApar({[alvo]: u}, "Logo trocada");
+  } catch (err) { const x = $("#mfundoSt"); if (x) x.textContent = ""; toast((err && err.message) || "Não foi possível usar esse arquivo."); }
+});
 
 /* eventos do portal */
 document.addEventListener("click", async e => {
@@ -2414,6 +2529,7 @@ render();
     }, () => { pending.delete(col); if (!pending.size) S.ready = true; schedule(); });
   });
   if (!pending.size) S.ready = true;
+  db.doc("config/aparencia").onSnapshot(s => { S.apar = s.exists ? (s.data() || {}) : {}; applyApar(); schedule(); }, () => {});
   db.doc("config/empresa").onSnapshot(s => { S.cfg = s.exists ? s.data() : {}; if (S.cfg.nome) $("#brandName").textContent = S.cfg.nome; schedule(); }, () => {});
   render();
 })();
