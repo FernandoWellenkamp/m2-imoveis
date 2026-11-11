@@ -769,7 +769,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
-const M2_VERSAO = "1.19 · 11/11/2026";
+const M2_VERSAO = "1.20 · 11/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
@@ -1930,7 +1930,11 @@ function applyApar(prev){
   const a = {...(S.apar || {}), ...(prev || {})};
   const imgs = document.querySelectorAll(".brand img");
   if (!LOGO_ORIG && imgs.length) LOGO_ORIG = [...imgs].map(i => i.src);
-  imgs.forEach((im, i) => { const novo = im.classList.contains("logo-d") ? (a.logoEscuro || a.logo) : a.logo; im.src = novo || (LOGO_ORIG && LOGO_ORIG[i]) || im.src; });
+  const T = temaAtivo();
+  imgs.forEach((im, i) => { const dark = im.classList.contains("logo-d");
+    const base = (dark ? (a.logoEscuro || a.logo) : a.logo) || (LOGO_ORIG && LOGO_ORIG[i]);
+    const tem = T ? (dark ? (T.logoEscuro || T.logo) : T.logo) : null;
+    const novo = tem || base || im.src; if (im.src !== novo) im.src = novo; });
   let css = "";
   const c1 = hexOk(a.cor1) ? a.cor1 : null, c2 = hexOk(a.cor2) ? a.cor2 : null, c3 = hexOk(a.cor3) ? a.cor3 : null;
   if (c1) { const claro = `color-mix(in srgb, ${c1} 45%, white)`;
@@ -1973,6 +1977,97 @@ async function salvaApar(mud, msg){
   try { await S.db.doc("config/aparencia").set(novo); S.apar = novo; applyApar(); render(); toast(msg); }
   catch (e) { toast("Não foi possível salvar: " + (e && e.message || "tente de novo")); applyApar(); }
 }
+/* ---------- Logo temática (enfeites prontos, montados no navegador) ---------- */
+const hojeISO = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; };
+function temaAtivo(){ const t = S.ltema; if (!t || !t.logo) return null; if (t.ate && hojeISO() > t.ate) return null; return t; }
+const TEMAS = [
+  {n:"Páscoa", k:/p[aá]scoa|coelh|ovos?\b|ressurrei/i, e:["🐰","🥚","🌷","🐣","🍫","🌼"], m:"Feliz Páscoa!", c:"#c59019"},
+  {n:"Natal", k:/natal|natalin|papai noel|noel/i, e:["🎄","🎅","⭐","🎁","❄️","🔔"], m:"Feliz Natal!", c:"#b3261e"},
+  {n:"Ano Novo", k:/ano novo|r[eé]veillon|virada|feliz 20\d\d/i, e:["🎆","🥂","✨","🎉","🍾","🎇"], m:"Feliz Ano Novo!", c:"#c59019"},
+  {n:"Carnaval", k:/carnaval|folia|bloco/i, e:["🎭","🎉","🎊","🥁","🎺","🪅"], m:"Bom Carnaval!", c:"#7b1fa2"},
+  {n:"São João", k:/s[aã]o jo[aã]o|junin|julin|arrai|quadrilha/i, e:["🌽","🔥","🎈","🪗","🎆","🌽"], m:"Arraiá da M2!", c:"#d84315", band:1},
+  {n:"Dia das Mães", k:/m[aã]es?\b/i, e:["💐","🌹","💖","🌸","💝","🌷"], m:"Feliz Dia das Mães!", c:"#c2185b"},
+  {n:"Dia dos Pais", k:/\bpais?\b/i, e:["👔","☕","💙","🏆","🔧","⭐"], m:"Feliz Dia dos Pais!", c:"#1d3b85"},
+  {n:"Dia dos Namorados", k:/namorad|amor|valentin/i, e:["❤️","💘","🌹","💑","💌","💕"], m:"Feliz Dia dos Namorados!", c:"#c62828"},
+  {n:"Dia das Crianças", k:/crian[cç]/i, e:["🎈","🧸","🪁","🍭","🎠","🎮"], m:"Feliz Dia das Crianças!", c:"#ef6c00"},
+  {n:"Halloween", k:/halloween|dia das bruxas|bruxa/i, e:["🎃","🦇","👻","🕸️","🍬","🌙"], m:"Feliz Halloween!", c:"#e65100"},
+  {n:"Independência", k:/independ[eê]ncia|7 de setembro|sete de setembro|p[aá]tria/i, e:["💚","💛","⭐","🎉","🏅","✨"], m:"Viva o Brasil!", c:"#1b7a36", br:1},
+  {n:"Copa do Mundo", k:/copa|futebol|sele[cç][aã]o|hexa/i, e:["⚽","🏆","💚","💛","🥅","🎉"], m:"Vai, Brasil!", c:"#1b7a36", br:1},
+  {n:"Black Friday", k:/black ?friday|promo[cç]|ofert/i, e:["🏷️","💰","🛍️","🔥","⚡","💸"], m:"Black Friday M2", c:"#111111"},
+  {n:"Outubro Rosa", k:/outubro rosa|c[aâ]ncer de mama/i, e:["🎀","💗","🌸","💕","🎀","🌷"], m:"Outubro Rosa", c:"#d81b60"},
+  {n:"Novembro Azul", k:/novembro azul|pr[oó]stata/i, e:["💙","🎗️","🔷","💙","⭐","🔵"], m:"Novembro Azul", c:"#1565c0"},
+  {n:"Dia do Corretor", k:/corretor/i, e:["🏠","🔑","🤝","🏡","⭐","🎉"], m:"Feliz Dia do Corretor!", c:"#c59019"},
+  {n:"Aniversário", k:/anivers[aá]rio|parab[eé]ns/i, e:["🎂","🎉","🎈","🎁","🥳","✨"], m:"Parabéns!", c:"#c59019"},
+  {n:"Verão", k:/ver[aã]o|f[eé]rias|praia|litoral/i, e:["☀️","🏖️","🌴","🕶️","🥥","🌊"], m:"Bom verão!", c:"#0288d1"},
+  {n:"Dia da Mulher", k:/mulher/i, e:["🌷","💜","🌸","✨","💐","🌺"], m:"Feliz Dia da Mulher!", c:"#8e24aa"},
+  {n:"Consciência Negra", k:/consci[eê]ncia negra|zumbi/i, e:["✊🏿","🌍","🤎","⭐","✊🏾","🌿"], m:"Consciência Negra", c:"#5d4037"},
+];
+const TEMA_CHIPS = ["Páscoa","São João","Dia das Mães","Dia dos Pais","Dia das Crianças","Natal","Ano Novo","Carnaval","Black Friday","Copa do Mundo"];
+function temaDaLista(txt){ return TEMAS.find(t => t.k.test(txt || "")) || null; }
+const semBandeira = e => !/[\u{1F1E6}-\u{1F1FF}]/u.test(e);
+async function temaIA(txt){
+  const lib = temaDaLista(txt);
+  if (lib) return {tema: lib.n, emojis: lib.e, msg: lib.m, cor: lib.c, band: lib.band, br: lib.br, fonte: "lista"};
+  if (window.M2_AI) {
+    try {
+      const r = await window.M2_AI.read(`Você ajuda uma imobiliária brasileira (M2 Imóveis, Parnaíba-PI) a enfeitar a logo para uma data ou tema. Tema pedido: "${txt}".
+Responda só um JSON: {"emojis": [6 emojis comuns que representem bem o tema, sem bandeiras de países, podem repetir], "mensagem": "saudação curta em português do Brasil, no máximo 24 caracteres, ou vazio se não fizer sentido", "cor": "cor de destaque do tema em hexadecimal #rrggbb"}`, []);
+      const j = JSON.parse(String(r).replace(/^```json|```$/g, "").trim());
+      const em = (Array.isArray(j.emojis) ? j.emojis : []).map(x => String(x).trim()).filter(x => x && x.length <= 8 && semBandeira(x) && !/[a-z0-9]/i.test(x));
+      if (em.length >= 3) return {tema: txt, emojis: em.slice(0, 6), msg: String(j.mensagem || "").slice(0, 28), cor: hexOk(j.cor) ? j.cor : "#c59019", fonte: "ia"};
+    } catch (e) { /* cai no padrão abaixo */ }
+  }
+  return {tema: txt, emojis: ["🎉","✨","⭐","🎊","🎈","💫"], msg: "", cor: "#c59019", fonte: "padrao"};
+}
+function rnd(seed){ let x = (seed >>> 0) || 1; return () => { x ^= x << 13; x >>>= 0; x ^= x >> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; }; }
+const carregaImg = src => new Promise((ok, no) => { const i = new Image(); i.onload = () => ok(i); i.onerror = () => no({message:"Não consegui abrir a logo atual."}); i.src = src; });
+async function montaLogoTema(src, o){
+  try { await document.fonts.load('700 40px "Archivo"'); } catch (e) {}
+  const img = await carregaImg(src);
+  for (const H of [200, 160, 120]) {
+    let lw = Math.round(img.naturalWidth * H / img.naturalHeight), lh = H;
+    if (lw > 3.2 * H) { lw = Math.round(3.2 * H); lh = Math.round(img.naturalHeight * lw / img.naturalWidth); }
+    const P = Math.round(H * .58), T = Math.round(H * .30), B = o.msg ? Math.round(H * .46) : Math.round(H * .24);
+    const W = lw + 2 * P, Hc = lh + T + B;
+    const c = document.createElement("canvas"); c.width = W; c.height = Hc; const g = c.getContext("2d");
+    const R = rnd(o.seed);
+    if (o.band) { // bandeirinhas de São João no alto
+      const cores = ["#e53935","#fdd835","#43a047","#1e88e5","#fb8c00","#8e24aa"]; const n = 14, y0 = T * .18, x0 = P * .6, x1 = W - P * .6, sag = T * .35;
+      g.strokeStyle = "rgba(120,80,40,.7)"; g.lineWidth = 2; g.beginPath(); g.moveTo(x0, y0); g.quadraticCurveTo(W / 2, y0 + 2 * sag, x1, y0); g.stroke();
+      for (let i = 0; i < n; i++) { const t = (i + .5) / n, x = x0 + t * (x1 - x0), y = y0 + 4 * sag * t * (1 - t), w = (x1 - x0) / n * .7, h = T * .42;
+        g.fillStyle = cores[i % cores.length]; g.beginPath(); g.moveTo(x - w / 2, y); g.lineTo(x + w / 2, y); g.lineTo(x + w / 2, y + h); g.lineTo(x, y + h * .72); g.lineTo(x - w / 2, y + h); g.closePath(); g.fill(); } }
+    if (o.br) { // faixa verde e amarela embaixo da logo
+      g.save(); g.globalAlpha = .9; g.fillStyle = "#1b7a36"; g.fillRect(P * .5, T + lh * .96, W - P, H * .05); g.fillStyle = "#fdd835"; g.fillRect(P * .5, T + lh * .96 + H * .05, W - P, H * .04); g.restore(); }
+    g.drawImage(img, P, T, lw, lh);
+    const slots = [[P * .48, T + lh * .30, .46], [P * .52, T + lh * .92, .34], [W - P * .48, T + lh * .30, .46], [W - P * .52, T + lh * .92, .34], [P + lw * .18, T * .52, .24], [P + lw * .86, T * .50, .26]];
+    const em = [...o.emojis]; while (em.length < slots.length) em.push(o.emojis[em.length % o.emojis.length]);
+    for (let i = em.length - 1; i > 0; i--) { const j = Math.floor(R() * (i + 1)); [em[i], em[j]] = [em[j], em[i]]; }
+    g.textAlign = "center"; g.textBaseline = "middle";
+    slots.forEach(([x, y, sz], i) => { if (o.band && i >= 4) return;
+      const s = H * sz * (.88 + R() * .24), dx = (R() - .5) * H * .08, dy = (R() - .5) * H * .08, rot = (R() - .5) * .6;
+      g.save(); g.translate(x + dx, y + dy); g.rotate(rot); g.shadowColor = "rgba(0,0,0,.25)"; g.shadowBlur = s * .12; g.shadowOffsetY = s * .04;
+      g.font = `${Math.round(s)}px "Segoe UI Emoji","Apple Color Emoji","Noto Color Emoji",sans-serif`; g.fillText(em[i], 0, 0); g.restore(); });
+    if (o.msg) {
+      const fs = Math.round(H * .17); g.font = `700 ${fs}px "Archivo",system-ui,sans-serif`;
+      const tw = Math.min(g.measureText(o.msg).width, W - 40), pw = tw + fs * 1.6, ph = fs * 1.75, px = (W - pw) / 2, py = T + lh + (B - ph) / 2;
+      g.save(); g.shadowColor = "rgba(0,0,0,.25)"; g.shadowBlur = 8; g.shadowOffsetY = 2; g.fillStyle = hexOk(o.cor) ? o.cor : "#c59019";
+      g.beginPath(); if (g.roundRect) g.roundRect(px, py, pw, ph, ph / 2); else g.rect(px, py, pw, ph); g.fill(); g.restore();
+      g.fillStyle = inkFor(hexOk(o.cor) ? o.cor : "#c59019"); g.fillText(o.msg, W / 2, py + ph / 2 + 1, W - 40); }
+    let u = c.toDataURL("image/webp", .9); if (!u.startsWith("data:image/webp")) u = c.toDataURL("image/png");
+    if (u.length <= 380000) return u;
+  }
+  throw {message: "A logo temática ficou grande demais. Tente sem mensagem ou com outra logo."};
+}
+let MT = null; // logo temática em preparação (prévia)
+async function mtGera(novaSeed){
+  const st = t => { const x = $("#mtSt"); if (x) x.textContent = t; };
+  const a = S.apar || {}; const lo = LOGO_ORIG || [...document.querySelectorAll(".brand img")].map(i => i.src);
+  const claro = a.logo || lo[0], escuro = a.logoEscuro || a.logo || lo[1] || lo[0];
+  const o = {...MT, seed: novaSeed ? Math.floor(Math.random() * 1e9) : MT.seed};
+  st("Montando a logo…");
+  const [l1, l2] = await Promise.all([montaLogoTema(claro, o), montaLogoTema(escuro, o)]);
+  MT = {...o, prevClaro: l1, prevEscuro: l2}; st(""); render();
+}
 function vManut(){
   if (!isAdmin()) return `<div class="emptybox"><b>Só administradores</b><span>Peça a um administrador para mudar a aparência do sistema.</span></div>`;
   const a = S.apar || {};
@@ -1989,6 +2084,24 @@ function vManut(){
         <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn sm" data-man="logoEscuro">Trocar logo do fundo escuro</button>${a.logoEscuro ? `<button class="btn sm" data-man="logoEscuro-orig">Usar a mesma da principal</button>` : ""}</span>
         <small style="color:var(--muted)">Opcional. Se não enviar, o sistema usa a logo principal.</small></div>
     </div></section>
+  ${(() => { const T = temaAtivo(), lt = S.ltema || {}, fundoEsc = hexOk(a.cor3) ? a.cor3 : APAR_PADRAO.cor3;
+    const pv = (src, fundo) => `<div style="background:${fundo};border:1px solid var(--line);border-radius:10px;padding:12px;display:grid;place-items:center;min-height:110px"><img src="${src}" alt="Prévia da logo temática" style="max-height:120px;max-width:100%"></div>`;
+    return `<section class="panel" style="margin-bottom:16px"><h2>✨ Logo temática</h2>
+    <p style="color:var(--muted);margin:4px 0 12px">Escreva o tema ou a data (ex.: <i>Páscoa</i>, <i>Dia das Mães</i>, <i>São João</i>) e clique em <b>Criar logo temática</b>. O sistema escolhe os enfeites e monta uma versão da logo para a ocasião. A logo normal não muda e volta sozinha na data que você escolher.</p>
+    ${T ? `<div class="note" style="margin:0 0 12px"><span>Tema no ar agora: <b>${esc(T.tema || "")}</b>${T.ate ? ` · volta à logo normal depois de ${fdate(T.ate)}` : " · sem data para acabar"}</span><button class="btn sm" data-man="tema-tira">Tirar o tema agora</button></div>` : (lt.logo && lt.ate ? `<div class="note" style="margin:0 0 12px"><span>O tema <b>${esc(lt.tema || "")}</b> acabou em ${fdate(lt.ate)}. A logo normal já voltou.</span></div>` : "")}
+    <div class="form">
+      <div class="f c4"><label for="mtTema">Tema</label><input id="mtTema" value="${esc(MT ? MT.pedido || "" : "")}" placeholder="Ex.: Páscoa, Natal, aniversário da M2…" maxlength="60"></div>
+      <div class="f c2"><label for="mtAte">Voltar à logo normal depois de</label><input type="date" id="mtAte" value="${esc(MT ? MT.ate || "" : "")}" min="${hojeISO()}"></div>
+    </div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;margin:10px 0">${TEMA_CHIPS.map(t => `<button type="button" class="btn sm" data-mtchip="${esc(t)}">${esc(t)}</button>`).join("")}</div>
+    <span style="display:flex;gap:8px;flex-wrap:wrap;align-items:center"><button class="btn pri" data-man="tema-cria">✨ Criar logo temática</button><span id="mtSt" style="color:var(--muted)"></span></span>
+    ${MT && MT.prevClaro ? `<div style="margin-top:16px;border-top:1px solid var(--line);padding-top:16px">
+      <div class="lbl" style="margin-bottom:8px">Prévia · tema “${esc(MT.tema)}”${MT.fonte === "ia" ? " · enfeites escolhidos pela IA" : ""}</div>
+      <div class="form"><div class="f c3"><label>No site (fundo claro)</label>${pv(MT.prevClaro, "#ffffff")}</div><div class="f c3"><label>No menu (fundo escuro)</label>${pv(MT.prevEscuro, fundoEsc)}</div></div>
+      <div class="form" style="margin-top:8px"><div class="f c4"><label for="mtMsg">Mensagem embaixo da logo (deixe em branco para não ter)</label><input id="mtMsg" value="${esc(MT.msg || "")}" maxlength="28"></div>
+        <div class="f c2"><label for="mtCor">Cor da faixa</label><input type="color" id="mtCor" value="${hexOk(MT.cor) ? MT.cor : "#c59019"}" style="width:56px;height:40px;padding:2px;border:1px solid var(--line);border-radius:8px;background:var(--surface)"></div></div>
+      <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" data-man="tema-outra">🔀 Outra arrumação</button><button class="btn" data-man="tema-msg">Atualizar mensagem e cor</button><button class="btn pri" data-man="tema-usa">✓ Usar esta logo</button><button class="btn" data-man="tema-descarta">Descartar</button></span>
+    </div>` : ""}</section>`; })()}
   <section class="panel" style="margin-bottom:16px"><h2>Foto de fundo da página inicial</h2>
     <p style="color:var(--muted);margin:4px 0 12px">É a foto grande atrás da busca, na primeira tela do site. Use uma foto na horizontal (deitada), de boa qualidade. Ela é reduzida e tratada automaticamente.</p>
     <div style="border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/5;background:${a.fundo && fundoUrl ? `url('${fundoUrl}') center/cover` : `url('https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Caminho_no_Porto_das_Barcas.jpg/960px-Caminho_no_Porto_das_Barcas.jpg') center 60%/cover`},#1d3b85;max-width:720px"></div>
@@ -2000,11 +2113,30 @@ function vManut(){
   <input type="file" id="manIn" accept="image/*" hidden>`;
 }
 let manAlvo = null;
+document.addEventListener("click", e => { const c = e.target.closest("[data-mtchip]"); if (!c) return; const i = $("#mtTema"); if (i) { i.value = c.dataset.mtchip; i.classList.remove("bad"); i.focus(); } });
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-man]"); if (!b) return;
   if (!isAdmin()) return toast("Só o administrador pode mudar a aparência.");
   const m = b.dataset.man;
   if (m === "logo" || m === "logoEscuro" || m === "fundo") { manAlvo = m; const inp = $("#manIn"); inp.value = ""; inp.click(); return; }
+  if (m === "tema-cria") { const tx = ($("#mtTema").value || "").trim(), ate = $("#mtAte").value || "";
+    if (!tx) { $("#mtTema").classList.add("bad"); $("#mtTema").focus(); return toast("Escreva o tema da logo (ex.: Páscoa)."); }
+    if (ate && ate < hojeISO()) { $("#mtAte").classList.add("bad"); return toast("A data para voltar à logo normal já passou. Escolha uma data de hoje em diante."); }
+    b.disabled = true; const st = $("#mtSt"); if (st) st.textContent = "Escolhendo os enfeites…";
+    return temaIA(tx).then(r => { MT = {...r, pedido: tx, ate, seed: Math.floor(Math.random() * 1e9)}; return mtGera(false); })
+      .catch(err => { b.disabled = false; if (st) st.textContent = ""; toast((err && err.message) || "Não foi possível montar a logo."); }); }
+  if (m === "tema-outra" && MT) return mtGera(true).catch(err => toast((err && err.message) || "Não foi possível montar a logo."));
+  if (m === "tema-msg" && MT) { MT.msg = ($("#mtMsg").value || "").trim(); MT.cor = $("#mtCor").value; MT.ate = $("#mtAte").value || MT.ate; return mtGera(false).catch(err => toast((err && err.message) || "Não foi possível montar a logo.")); }
+  if (m === "tema-descarta") { MT = null; render(); return; }
+  if (m === "tema-usa" && MT) { const ate = $("#mtAte").value || "";
+    if (ate && ate < hojeISO()) { $("#mtAte").classList.add("bad"); return toast("A data para voltar à logo normal já passou. Escolha uma data de hoje em diante."); }
+    b.disabled = true;
+    const dados = {tema: MT.tema, logo: MT.prevClaro, logoEscuro: MT.prevEscuro, ate, mensagem: MT.msg || "", criadoPor: S.sess?.nome || "", criadoEm: new Date().toISOString()};
+    return S.db.doc("config/logotema").set(dados).then(() => { S.ltema = dados; MT = null; applyApar(); render(); toast(ate ? `Logo temática no ar até ${fdate(ate)}` : "Logo temática no ar"); })
+      .catch(err => { b.disabled = false; toast("Não foi possível salvar: " + ((err && err.message) || "tente de novo")); }); }
+  if (m === "tema-tira") { if (!confirm("Tirar a logo temática e voltar à logo normal agora?")) return;
+    return S.db.doc("config/logotema").set({removidoPor: S.sess?.nome || "", removidoEm: new Date().toISOString()}).then(() => { S.ltema = {}; applyApar(); render(); toast("Logo normal de volta"); })
+      .catch(err => toast("Não foi possível tirar o tema: " + ((err && err.message) || "tente de novo"))); }
   if (m === "logo-orig") return salvaApar({logo:null}, "Logo original de volta");
   if (m === "logoEscuro-orig") return salvaApar({logoEscuro:null}, "Pronto: o fundo escuro usa a logo principal");
   if (m === "fundo-orig") return salvaApar({fundo:null}, "Foto de fundo original de volta");
@@ -2531,6 +2663,7 @@ render();
     }, () => { pending.delete(col); if (!pending.size) S.ready = true; schedule(); });
   });
   if (!pending.size) S.ready = true;
+  db.doc("config/logotema").onSnapshot(s => { S.ltema = s.exists ? (s.data() || {}) : {}; applyApar(); schedule(); }, () => {});
   db.doc("config/aparencia").onSnapshot(s => { S.apar = s.exists ? (s.data() || {}) : {}; applyApar(); schedule(); }, () => {});
   db.doc("config/empresa").onSnapshot(s => { S.cfg = s.exists ? s.data() : {}; if (S.cfg.nome) $("#brandName").textContent = S.cfg.nome; schedule(); }, () => {});
   render();
