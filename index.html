@@ -108,7 +108,22 @@
     st("enviando");
     try { const r = await fs.collection("fotos").add({data: await toB64(blob), mime: "image/jpeg", tamanho: blob.size, nome: file.name, criadoEm: new Date().toISOString()}); return {id: "fs:" + r.id}; }
     catch (e) { throw {message: errMsg(e)}; }
-  } };
+  },
+  // Vídeos: enviados direto do navegador para o Cloudinary (plano gratuito, sem cartão), com um "upload preset" não assinado.
+  // cloud = nome da conta (Cloud name); preset = nome do preset não assinado. Os dois são públicos; a API Secret NUNCA vai aqui.
+  uploadVideo(file, onProg){ return new Promise((res, rej) => {
+    const CLD = {cloud: "o3tvp07z", preset: "m2_videos"};
+    if (!CLD.cloud || !CLD.preset) return rej({message: "o envio de vídeos ainda está sendo configurado. Por enquanto, cole um link do YouTube."});
+    if (!/^video\//.test(file.type) && !/\.(mp4|mov|m4v|webm|3gp|avi|mkv)$/i.test(file.name)) return rej({message: "o arquivo não é um vídeo."});
+    if (file.size > 100 * 1048576) return rej({message: `o vídeo tem ${Math.round(file.size / 1048576)} MB e o limite é 100 MB. Grave um vídeo mais curto ou envie pelo YouTube e cole o link.`});
+    const fd = new FormData(); fd.append("file", file); fd.append("upload_preset", CLD.preset);
+    const x = new XMLHttpRequest(); x.open("POST", `https://api.cloudinary.com/v1_1/${CLD.cloud}/video/upload`);
+    x.upload.onprogress = e => { if (e.lengthComputable && onProg) try { onProg(Math.round(e.loaded * 100 / e.total)); } catch (er) {} };
+    x.onload = () => { let r = {}; try { r = JSON.parse(x.responseText); } catch (e) {}
+      if (x.status < 300 && r.secure_url) res({url: r.secure_url}); else rej({message: "o Cloudinary recusou o vídeo (" + ((r.error && r.error.message) || "erro " + x.status) + ")."}); };
+    x.onerror = () => rej({message: "a internet caiu durante o envio. Tente de novo."});
+    x.send(fd);
+  }); } };
 
   window.M2_AUTH = {
     session: () => sess,
@@ -352,6 +367,14 @@ td small{display:block;color:var(--muted)}
 .photos .th{width:92px;height:70px;border-radius:6px;overflow:hidden;position:relative;background:var(--sunk)}
 .photos .th img{width:100%;height:100%;object-fit:cover}
 .photos .th button{position:absolute;top:2px;right:2px;background:var(--surface);border:0;border-radius:4px;cursor:pointer;font-size:12px;padding:0 5px}
+.photos .th.v{background:#111;display:grid;place-items:center;color:#fff;font-size:11px;text-align:center}
+.photos .th.v img{position:absolute;inset:0;opacity:.85}
+.photos .th.v button{color:var(--ink);z-index:1}
+.photos .th.v .pl{position:relative;font-size:22px;text-shadow:0 1px 4px #000}
+.vidadd{display:flex;gap:8px;margin-top:8px}.vidadd input{flex:1;min-width:0}
+.vids{display:grid;gap:12px;margin:0 0 16px}
+.vid{position:relative;aspect-ratio:16/9;background:#000;border-radius:10px;overflow:hidden}
+.vid iframe,.vid video{position:absolute;inset:0;width:100%;height:100%;border:0;display:block;background:#000}
 .photos .add{width:92px;height:70px;border:1px dashed var(--line);border-radius:6px;display:grid;place-items:center;color:var(--muted);cursor:pointer;font-size:12px;text-align:center}
 .dl{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px 18px;margin:0}
 .dl div{min-width:0}
@@ -744,7 +767,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
-const M2_VERSAO = "1.14 · 10/11/2026";
+const M2_VERSAO = "1.15 · 10/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
@@ -901,6 +924,21 @@ const photoUrl = id => { id = String(id);
   if (id.startsWith("fs:")) { const k = id.slice(3); return fsDone.get(k) || FSPH + k; }
   return id.startsWith("sim:") ? SIM.url(id) : /^(data:|fotos\/|https?:)/.test(id) ? id : "/_blob/" + id; };
 
+/* Vídeos dos imóveis: o imóvel guarda videos: [url, ...]. Pode ser link do YouTube ou arquivo enviado ao Cloudinary
+   (https://res.cloudinary.com/<conta>/video/upload/...). O Cloudinary gera a capa (.jpg) e uma versão leve em MP4 pela própria URL. */
+const ytId = u => { const m = String(u).match(/(?:youtu\.be\/|youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/|v\/))([\w-]{11})/); return m ? m[1] : null; };
+const CLDV = /^https:\/\/res\.cloudinary\.com\/[^/]+\/video\/upload\//;
+const cldT = (u, t, ext) => { let s = String(u).replace("/video/upload/", `/video/upload/${t}/`); if (ext) s = s.replace(/\.[a-z0-9]+$/i, "") + "." + ext; return s; };
+const videoThumb = u => { const y = ytId(u); return y ? `https://i.ytimg.com/vi/${y}/hqdefault.jpg` : CLDV.test(u) ? cldT(u, "so_1,w_480,c_limit", "jpg") : null; };
+function videoHtml(u){
+  const y = ytId(u);
+  if (y) return `<div class="vid"><iframe src="https://www.youtube-nocookie.com/embed/${y}" title="Vídeo do imóvel" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture; fullscreen" allowfullscreen></iframe></div>`;
+  if (CLDV.test(u)) return `<div class="vid"><video controls playsinline preload="none" poster="${esc(cldT(u, "so_1,w_1280,c_limit", "jpg"))}"><source src="${esc(cldT(u, "q_auto,w_1280,c_limit", "mp4"))}" type="video/mp4"><source src="${esc(u)}"></video></div>`;
+  if (/^blob:|\.(mp4|webm|m4v|mov)(\?|$)/i.test(u)) return `<div class="vid"><video controls playsinline preload="metadata" src="${esc(u)}"></video></div>`;
+  return `<p><a class="btn sm" href="${esc(u)}" target="_blank" rel="noopener">▶ Assistir vídeo</a></p>`;
+}
+const videosHtml = (vs, cls) => vs && vs.length ? `<div class="${cls || "vids"}">${vs.map(videoHtml).join("")}</div>` : "";
+
 /* ---------- Schemas ---------- */
 const TIPOS = ["Apartamento","Casa","Casa em condomínio","Cobertura","Lote","Terreno","Sala comercial","Loja","Galpão","Fazenda/Sítio"];
 const STATUS_IMOVEL = ["Disponível","Reservado","Alugado","Vendido","Inativo"];
@@ -944,6 +982,7 @@ const SCHEMAS = {
     {sec:"Anúncio"},
     {k:"descricao", l:"Descrição", t:"area"},
     {k:"fotos", l:"Fotos", t:"photos"},
+    {k:"videos", l:"Vídeos", t:"videos"},
     {k:"publicar", l:"Mostrar na vitrine", t:"bool", c:3, def:true},
     {k:"destaque", l:"Destaque", t:"bool", c:3},
   ]},
@@ -1504,6 +1543,7 @@ const SITE = (() => {
         <div class="sgal" data-gid="${i.id}" data-k="0">${fotos.length ? `<img src="${photoUrl(fotos[0])}" alt="${esc(i.titulo)}">${fotos.length>1?`<button class="sarr l" data-gal="-1" aria-label="Foto anterior">‹</button><button class="sarr r" data-gal="1" aria-label="Próxima foto">›</button><span class="scount">1/${fotos.length}</span>`:""}${i.exemplo?`<span class="silus">Foto ilustrativa</span>`:""}` : `<div class="snoph">${esc(i.tipo)}</div>`}</div>
         ${fotos.length > 1 ? `<div class="sthumbs">${fotos.map((p,k) => `<button type="button" data-thumb="${k}" aria-label="Foto ${k+1}"><img src="${photoUrl(p)}" alt="" loading="lazy"></button>`).join("")}</div>` : ""}
         ${i.exemplo ? `<p class="snote">Imóvel e fotos de exemplo, geradas por inteligência artificial.</p>` : ""}
+        ${(i.videos||[]).length ? `<h2>Vídeo${i.videos.length > 1 ? "s" : ""}</h2>${videosHtml(i.videos)}` : ""}
         <div class="sdhd"><div><span class="sloc">${ic("pin",14)} ${esc([i.loteamento, i.bairro, i.cidade].filter(Boolean).join(" | "))}</span><h1>${esc(cardTitle(i))}</h1><p class="stit">${esc(i.titulo)}</p><span class="scod">Cód. ${esc(i.codigo)}</span></div>
           <div class="sdact"><button class="sbtn sbtn-line" data-fav="${i.id}">${ic("heart",16)} ${fav.has(i.id) ? "Favoritado" : "Favoritar"}</button><button class="sbtn sbtn-line" data-sact="share">${ic("share",16)} Compartilhar</button></div></div>
         <div class="sfeat big">${i.area ? `<span>${ic("area",20)}<b>${i.area} m²</b>área</span>` : ""}${i.quartos ? `<span>${ic("bed",20)}<b>${i.quartos}</b>quartos</span>` : ""}${i.suites ? `<span>${ic("bed",20)}<b>${i.suites}</b>suíte${i.suites>1?"s":""}</span>` : ""}${i.banheiros ? `<span>${ic("bath",20)}<b>${i.banheiros}</b>banheiros</span>` : ""}${i.vagas ? `<span>${ic("car",20)}<b>${i.vagas}</b>vagas</span>` : ""}${i.quadra||i.lote ? `<span>${ic("area",20)}<b>Qd ${esc(i.quadra||"—")} · Lt ${esc(i.lote||"—")}</b>lote</span>` : ""}</div>
@@ -1948,6 +1988,7 @@ function showDetail(col, id, pub){
   openModal(`<div class="mh"><div><span class="lbl">${esc(im.codigo)} · ${esc(im.tipo)} · ${esc(im.finalidade)}</span><h2>${esc(im.titulo)}</h2></div><button class="x" aria-label="Fechar" data-act="close">×</button></div>
   <div class="mb">
     ${fotos.length ? `<div class="gal">${fotos.map(f=>`<img src="${photoUrl(f)}" alt="" loading="lazy">`).join("")}</div>${im.exemplo ? `<p class="galnote">Fotos ilustrativas geradas por inteligência artificial. Não são fotos deste imóvel.</p>` : ""}` : ""}
+    ${videosHtml(im.videos)}
     <div style="display:flex;gap:24px;flex-wrap:wrap;margin-bottom:16px">${priceHtml(im)}</div>
     ${dl([
       ["Localização", esc([internal?im.endereco:null, im.bairro, im.cidade].filter(Boolean).join(", ")||"—")],
@@ -2006,6 +2047,9 @@ function fieldHtml(f, d){
       <button type="button" class="btn" id="anxBtn">📎 Anexar arquivo</button><input type="file" id="anxIn" accept="application/pdf,image/png,image/jpeg,.pdf,.png,.jpg,.jpeg" multiple hidden></div>
       <small style="color:var(--muted)">PDF até 700 KB; fotos são reduzidas automaticamente. Ao escolher o tipo, o documento é marcado como entregue.</small></div>`;
     case "photos": return `<div class="${cls}"><label>${f.l}</label>${S.assets ? `<div class="photos" id="photos"></div><input type="file" id="fileIn" accept="image/*" multiple hidden><small style="color:var(--muted)">A primeira foto é a capa. Clique em × para remover.</small>` : `<small style="color:var(--muted)">Envio de fotos disponível só para quem pode editar esta página.</small>`}</div>`;
+    case "videos": return `<div class="${cls}"><label>${f.l}</label><div class="photos" id="vids"></div>${S.assets ? `<input type="file" id="vidIn" accept="video/*" multiple hidden>` : ""}
+      <div class="vidadd"><input type="url" id="vidUrl" placeholder="Ou cole aqui um link do YouTube" aria-label="Link do vídeo"><button type="button" class="btn" id="vidUrlBtn">Adicionar link</button></div>
+      <small style="color:var(--muted)">Envie o vídeo do celular ou do computador (até 100 MB, cerca de 1 a 2 minutos) ou cole um link do YouTube. Clique em × para remover.</small></div>`;
     default: return `<div class="${cls}">${lab}<input type="${f.t||"text"}" id="${id}" name="${f.k}" value="${esc(v)}" placeholder="${esc(f.ph||"")}" ${f.up ? 'data-up="1" autocapitalize="characters"' : ""} ${req}></div>`;
   }
 }
@@ -2013,6 +2057,7 @@ function openForm(col, d, preset){
   const sc = SCHEMAS[col]; const isNew = !d; d = d || {...(preset||{})};
   let fotos = [...(d.fotos||[])]; let uploading = 0; let upMsg = ""; let delArm = false;
   let anexos = [...(d.anexos||[])];
+  let videos = [...(d.videos||[])]; let vUp = 0; let vMsg = "";
   if (!S.canWrite) return;
   openModal(`<form id="frm" novalidate><div class="mh"><div><span class="lbl">${isNew ? "Novo cadastro" : esc(d.codigo || "Editar")}</span><h2>${isNew ? (/^(visita|mensagem|captação|ficha)$/.test(sc.one) ? "Nova " : "Novo ") + sc.one : esc(d.titulo || d.nome || d.inquilino || "Editar " + sc.one)}</h2></div><button type="button" class="x" aria-label="Fechar" data-act="close">×</button></div>
     <div class="mb">${sc.scan ? `<p class="scaninfo tip" id="scanInfo">Recebeu a ficha preenchida (papel, PDF ou foto do WhatsApp)? Clique em <b>📄 Ler ficha preenchida</b>, lá embaixo: o sistema preenche os campos e você só confere e cadastra.</p>` : ""}<div class="form">${sc.fields.map(f=>fieldHtml(f,d)).join("")}</div><p id="ferr" style="color:var(--bad);margin:12px 0 0" hidden></p></div>
@@ -2021,6 +2066,10 @@ function openForm(col, d, preset){
     const drawPhotos = () => { const box = $("#photos", ov); if (!box) return;
       box.innerHTML = fotos.map((f,i)=>`<div class="th"><img src="${photoUrl(f)}" alt="Foto ${i+1}"><button type="button" data-rmph="${i}" aria-label="Remover foto ${i+1}">×</button></div>`).join("") + (uploading ? `<div class="add">${esc(upMsg || `Enviando ${uploading}…`)}</div>` : "") + `<button type="button" class="add" id="addPh">+ Adicionar fotos</button>`; };
     drawPhotos();
+    const drawVideos = () => { const box = $("#vids", ov); if (!box) return;
+      box.innerHTML = videos.map((u,i) => { const t = videoThumb(u); return `<div class="th v" title="${esc(u)}">${t ? `<img src="${esc(t)}" alt="" onerror="this.remove()">` : ""}<span class="pl">▶</span><button type="button" data-rmvid="${i}" aria-label="Remover vídeo ${i+1}">×</button></div>`; }).join("")
+        + (vUp ? `<div class="add">${esc(vMsg || "Enviando vídeo…")}</div>` : "") + (S.assets ? `<button type="button" class="add" id="addVid">+ Enviar vídeo</button>` : ""); };
+    drawVideos();
     const anxF = sc.fields.find(x => x.t === "anexos"); const ANXT = Object.fromEntries([...((anxF && anxF.docs) || DOCS), ["ficha","Ficha preenchida"], ["outro","Outro documento"]]);
     const kb = n => n >= 1048576 ? (n/1048576).toFixed(1).replace(".", ",") + " MB" : Math.max(1, Math.round(n/1024)) + " KB";
     const drawAnexos = () => { const box = $("#anx", ov); if (!box) return;
@@ -2063,7 +2112,7 @@ function openForm(col, d, preset){
         let part;
         if (isPdf) { if (file.size > 15*1024*1024) throw {message:"PDF muito grande para leitura (máximo 15 MB)."}; part = {mime:"application/pdf", data: await toB64(file)}; }
         else { const bm = await createImageBitmap(file); const w = Math.min(2200, bm.width), hh = Math.round(bm.height*w/bm.width); const c = document.createElement("canvas"); c.width = w; c.height = hh; c.getContext("2d").drawImage(bm, 0, 0, w, hh); part = {mime:"image/jpeg", data: await toB64(await new Promise(r => c.toBlob(r, "image/jpeg", .88)))}; }
-        const flds = sc.fields.filter(f => f.k && !["anexos","photos","ref","password"].includes(f.t) && !["status","origem"].includes(f.k));
+        const flds = sc.fields.filter(f => f.k && !["anexos","photos","videos","ref","password"].includes(f.t) && !["status","origem"].includes(f.k));
         const desc = f => f.t === "select" ? `uma destas opções: ${f.o.filter(Boolean).map(o => `"${o}"`).join(", ")}` : f.t === "bool" ? "true se a caixa estiver marcada/sim, false se marcada não" : f.t === "num" ? "número (sem R$, sem separador de milhar, ponto como decimal)" : f.t === "date" ? "data no formato AAAA-MM-DD" : "texto";
         const prompt = `Você está lendo uma ${sc.scan} da imobiliária M2 Imóveis e Loteamentos (Parnaíba-PI), normalmente preenchida à mão e fotografada pelo WhatsApp.
 Transcreva os dados preenchidos e devolva SOMENTE um objeto JSON com estas chaves (omita as que estiverem em branco ou ilegíveis; não invente nada):
@@ -2094,6 +2143,9 @@ Regras: nomes de pessoas em MAIÚSCULAS; CPF, RG e telefones como estão escrito
     ov.addEventListener("click", e => {
       if (e.target.id === "addPh") $("#fileIn", ov).click();
       const rm = e.target.dataset.rmph; if (rm !== undefined) { fotos.splice(+rm,1); drawPhotos(); }
+      if (e.target.id === "addVid") $("#vidIn", ov).click();
+      const rv = e.target.dataset.rmvid; if (rv !== undefined) { videos.splice(+rv,1); drawVideos(); }
+      if (e.target.id === "vidUrlBtn") addVidUrl();
       if (e.target.closest("#anxBtn")) $("#anxIn", ov).click();
       if (e.target.closest("#scanBtn")) $("#scanIn", ov).click();
       if (e.target.closest("#pwlink")) { const b = e.target.closest("#pwlink"); b.disabled = true; window.M2_AUTH.reset(d.email || d.usuario).then(em => { b.textContent = "✔ Link enviado para " + em; toast("Link de troca de senha enviado"); }).catch(err => { b.disabled = false; toast(err.message || "Não foi possível enviar o link"); }); }
@@ -2117,6 +2169,30 @@ Regras: nomes de pessoas em MAIÚSCULAS; CPF, RG e telefones como estão escrito
         uploading--; drawPhotos();
       }
       upMsg = "";
+    });
+    function addVidUrl(){
+      const el = $("#vidUrl", ov); let u = el.value.trim(); el.classList.remove("bad");
+      if (!u) { el.classList.add("bad"); el.focus(); return toast("Cole o link do vídeo no campo antes de clicar em Adicionar link."); }
+      if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+      if (!/^https?:\/\/[^\s/]+\.[^\s/]+/i.test(u)) { el.classList.add("bad"); el.focus(); return toast("Esse link não parece válido. Copie o endereço completo do vídeo (ex.: https://youtu.be/...)."); }
+      if (videos.includes(u)) return toast("Esse vídeo já está na lista.");
+      videos.push(u); el.value = ""; drawVideos();
+      toast(ytId(u) ? "Vídeo do YouTube adicionado. Clique em " + (isNew ? "Cadastrar" : "Salvar") + " para guardar." : "Link adicionado. No site ele aparece como um botão “Assistir vídeo”.");
+    }
+    const vu = $("#vidUrl", ov); vu && vu.addEventListener("keydown", e => { if (e.key === "Enter") { e.preventDefault(); addVidUrl(); } });
+    const vi = $("#vidIn", ov);
+    vi && vi.addEventListener("change", async () => {
+      const files = [...vi.files]; vi.value = ""; const tot = files.length; let k = 0;
+      for (const file of files) { k++; const de = tot > 1 ? ` ${k} de ${tot}` : "";
+        vUp++; vMsg = `Enviando o vídeo${de}…`; drawVideos();
+        try {
+          if (!S.assets.uploadVideo) throw {message: "O envio de vídeos não está disponível aqui. Cole um link do YouTube."};
+          const r = await S.assets.uploadVideo(file, p => { vMsg = `Enviando o vídeo${de}… ${p}%`; drawVideos(); });
+          videos.push(r.url); toast("Vídeo enviado. Clique em " + (isNew ? "Cadastrar" : "Salvar") + " para guardar.");
+        } catch (err) { showErr({message: "Não foi possível enviar " + file.name + ": " + (err.message || err.code || "erro desconhecido")}); }
+        vUp--; drawVideos();
+      }
+      vMsg = "";
     });
     function showErr(err, field){
       const msg = err.code === "permission_denied" ? "Você não tem permissão para alterar o banco." : (err.message || "Não foi possível salvar. Tente de novo.");
@@ -2150,9 +2226,12 @@ Regras: nomes de pessoas em MAIÚSCULAS; CPF, RG e telefones como estão escrito
       e.preventDefault();
       clearErr();
       if (uploading) return showErr({message:"Aguarde o envio das fotos terminar."});
+      if (vUp) return showErr({message:"Aguarde o envio do vídeo terminar."});
+      { const pend = $("#vidUrl", ov); if (pend && pend.value.trim()) return showErr({message:"Você colou um link de vídeo mas não clicou em “Adicionar link”. Clique nele (ou apague o link) e salve de novo."}, pend); }
       const out = {};
       for (const f of sc.fields) { if (!f.k) continue; const el = ov.querySelector(`[name="${f.k}"]`);
         if (f.t === "photos") { out.fotos = fotos; continue; }
+        if (f.t === "videos") { out.videos = videos; continue; }
         if (f.t === "anexos") { out.anexos = anexos; continue; }
         if (f.t === "password") {
           const el2 = ov.querySelector(`[name="${f.k}2"]`); const p1 = el ? el.value : "", p2 = el2 ? el2.value : "";
