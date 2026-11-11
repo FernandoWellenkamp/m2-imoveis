@@ -767,7 +767,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
-const M2_VERSAO = "1.16 · 11/11/2026";
+const M2_VERSAO = "1.17 · 11/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
@@ -983,7 +983,7 @@ const SCHEMAS = {
     {k:"descricao", l:"Descrição", t:"area"},
     {k:"fotos", l:"Fotos", t:"photos"},
     {k:"videos", l:"Vídeos", t:"videos"},
-    {k:"publicar", l:"Mostrar na vitrine", t:"bool", c:3, def:true},
+    {k:"publicar", l:"Mostrar na vitrine", t:"bool", c:3, def:true, admin:1},
     {k:"destaque", l:"Destaque", t:"bool", c:3},
   ]},
   proprietarios: { one:"proprietário", fields:[
@@ -1255,6 +1255,7 @@ function vPainel(){
   <div class="lbl" style="margin-bottom:8px">Consultar imóveis disponíveis</div>
   <div class="consulta">${Object.entries(CATS).map(([k,c]) => { const L = D.imoveis.filter(i => i.status==="Disponível" && c.test(i)); const vs = L.map(i=>n0(i[c.pk])).filter(v=>v>0);
     return `<button class="cq" data-cat="${k}"><span class="k">${c.l}</span><span class="sub">${c.s}</span><span class="cnt">${L.length}</span><span class="rng">${vs.length ? (Math.min(...vs)===Math.max(...vs) ? money(vs[0]) : money(Math.min(...vs)) + " a " + money(Math.max(...vs))) + (k==="aluguel"?"/mês":"") : "Nenhum disponível"}</span><span class="go">Consultar →</span></button>`; }).join("")}</div>
+  ${(() => { const ag = isAdmin() ? D.imoveis.filter(i => i.aguardando && !i.publicar) : []; return ag.length ? `<div class="note"><span><b>${ag.length} anúncio${ag.length>1?"s":""} aguardando sua autorização</b> para aparecer no site.</span><span style="display:flex;gap:6px;flex-wrap:wrap">${ag.slice(0,5).map(i => `<button class="btn sm" data-open="imoveis" data-id="${i.id}">${esc(i.codigo || i.titulo)}</button>`).join("")}</span></div>` : ""; })()}
   ${S.data.imoveis.some(i=>i.exemplo) && S.canWrite ? `<div class="note"><span>Há registros de exemplo no banco.</span><button class="btn sm" data-act="unseed">Apagar exemplos</button></div>` : ""}
   <div class="kpis">
     <div class="kpi"><div class="lbl">À venda</div><div class="v">${dv}</div><div class="s">imóveis disponíveis</div></div>
@@ -1301,7 +1302,7 @@ function imCard(im, pub){
   const foto = (im.fotos||[])[0];
   return `<button class="card" data-open="imoveis" data-id="${im.id}" ${pub?'data-pub="1"':""}>
     <div class="ph">${foto ? `<img src="${photoUrl(foto)}" alt="${esc(im.titulo)}" loading="lazy">` : placeholder(im)}
-      ${im.exemplo && foto ? `<span class="ilus">Foto ilustrativa</span>` : ""}<div class="tags">${pub ? `<span class="pill">${esc(im.finalidade)}</span>` : stPill(im.status)}${im.destaque?`<span class="pill warn">Destaque</span>`:""}${im.exemplo?`<span class="pill">Exemplo</span>`:""}</div></div>
+      ${im.exemplo && foto ? `<span class="ilus">Foto ilustrativa</span>` : ""}<div class="tags">${pub ? `<span class="pill">${esc(im.finalidade)}</span>` : stPill(im.status)}${!pub && im.aguardando && !im.publicar ? `<span class="pill warn">Aguardando autorização</span>` : ""}${im.destaque?`<span class="pill warn">Destaque</span>`:""}${im.exemplo?`<span class="pill">Exemplo</span>`:""}</div></div>
     <div class="body"><span class="code">${esc(im.codigo)} · ${esc(im.tipo)}${pub?"":" · "+esc(im.finalidade)}</span>
       <h3>${esc(im.titulo)}</h3><span class="loc">${esc([im.loteamento, im.bairro, im.cidade].filter(Boolean).join(", ") || "Endereço não informado")}</span>
       ${specs(im) ? `<span class="spec">${specs(im)}</span>` : ""}${priceHtml(im, pub && S.v.fin ? S.v.fin : "")}</div></button>`;
@@ -1803,8 +1804,9 @@ const PICON = {
 function badgeFor(id){
   const D = S.data;
   const n = id === "mensagens" ? D.mensagens.filter(m => !m.lida).length : id === "interessados" ? D.leads.filter(l => (l.etapa||"Novo") === "Novo").length
-    : id === "captacao" ? D.captacoes.filter(c => (c.status||"Novo contato") === "Novo contato").length : id === "fichas" ? D.fichas.filter(f => !["Aprovada","Reprovada"].includes(f.status)).length : 0;
-  const tip = {mensagens:`${n} mensage${n>1?"ns":"m"} não lida${n>1?"s":""}`, interessados:`${n} lead${n>1?"s":""} novo${n>1?"s":""}, ainda sem contato`, captacao:`${n} captaç${n>1?"ões":"ão"} em novo contato`, fichas:`${n} ficha${n>1?"s":""} aguardando análise ou documentos`}[id];
+    : id === "captacao" ? D.captacoes.filter(c => (c.status||"Novo contato") === "Novo contato").length : id === "fichas" ? D.fichas.filter(f => !["Aprovada","Reprovada"].includes(f.status)).length
+    : id === "imoveis" && isAdmin() ? D.imoveis.filter(i => i.aguardando && !i.publicar).length : 0;
+  const tip = {mensagens:`${n} mensage${n>1?"ns":"m"} não lida${n>1?"s":""}`, interessados:`${n} lead${n>1?"s":""} novo${n>1?"s":""}, ainda sem contato`, captacao:`${n} captaç${n>1?"ões":"ão"} em novo contato`, fichas:`${n} ficha${n>1?"s":""} aguardando análise ou documentos`, imoveis:`${n} anúncio${n>1?"s":""} aguardando sua autorização`}[id];
   return n ? `<span class="pbadge" title="${tip}" aria-label="${tip}">${n}</span>` : "";
 }
 function portalLayout(v, content){
@@ -1997,8 +1999,9 @@ function showDetail(col, id, pub){
       ["Quartos", esc(im.quartos||"—") + (im.suites?` (${im.suites} suíte${im.suites>1?"s":""})`:"")],
       ["Banheiros", esc(im.banheiros||"—")], ["Vagas", esc(im.vagas||"—")],
       ["Condomínio", money(im.condominio)], ["IPTU (ano)", money(im.iptu)],
-      ...(internal ? [["Situação", stPill(im.status)], ["Proprietário", own ? `<button class="linkbtn" data-open="proprietarios" data-id="${own.id}">${esc(own.nome)}</button>` : "—"], ["Matrícula / IPTU", `<span class="mono">${esc(im.matricula||"—")}</span>`], ["Vitrine", im.publicar ? "Publicado" : "Oculto"]] : []),
+      ...(internal ? [["Situação", stPill(im.status)], ["Proprietário", own ? `<button class="linkbtn" data-open="proprietarios" data-id="${own.id}">${esc(own.nome)}</button>` : "—"], ["Matrícula / IPTU", `<span class="mono">${esc(im.matricula||"—")}</span>`], ["Vitrine", im.publicar ? "Publicado" : im.aguardando ? `<span class="pill warn">Aguardando autorização</span>` : "Oculto"]] : []),
     ])}
+    ${internal && im.aguardando && !im.publicar ? (isAdmin() && S.canWrite ? `<div class="note" style="margin:16px 0 0"><span>Um corretor pediu para anunciar este imóvel no site.</span><span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" data-autoriz="nao" data-id="${im.id}">Recusar</button><button class="btn pri sm" data-autoriz="sim" data-id="${im.id}">✓ Autorizar anúncio</button></span></div>` : `<div class="note" style="margin:16px 0 0"><span>Anúncio aguardando autorização do administrador.</span></div>`) : ""}
     ${mapBlock(im, internal)}
     ${im.descricao ? `<div class="subh">Descrição</div><p class="desc">${esc(im.descricao)}</p>` : ""}
     ${!internal ? `<div class="note" style="margin:20px 0 0"><span>Gostou? Fale com a ${esc(S.cfg.nome||"M2")} e informe o código <b class="mono">${esc(im.codigo)}</b>.</span>${S.cfg.whatsapp?`<b class="mono">${esc(S.cfg.whatsapp)}</b>`:""}</div>` : `
@@ -2038,7 +2041,10 @@ function fieldHtml(f, d){
       if (window.M2_AUTH && d.id && !own) return `<div class="f"><p class="note" style="margin:0 0 8px">A senha de outra pessoa não aparece nem pode ser digitada aqui. Envie para ela um link de troca de senha no e-mail cadastrado.</p><button type="button" class="btn" id="pwlink">📧 Enviar link para trocar a senha</button></div>`;
       if (own) return `<div class="f"><p class="note" style="margin:0">Este é o seu cadastro. Para trocar a sua senha, digite a senha atual e a nova. Deixe em branco para manter.</p></div>` + pwIn(id + "a", f.k + "Atual", "Senha atual", "Sua senha de hoje", "current-password") + pwIn(id, f.k, "Nova senha", "Mínimo de 6 caracteres") + pwIn(id + "2", f.k + "2", "Confirmar nova senha", "Digite a nova senha de novo");
       return pwIn(id, f.k, f.l + (d.senhaHash ? "" : " *"), d.senhaHash ? "Deixe em branco para manter" : "Mínimo de 6 caracteres") + pwIn(id + "2", f.k + "2", "Confirmar senha" + (d.senhaHash ? "" : " *"), "Digite a senha de novo"); }
-    case "bool": return `<div class="${cls}"><label class="chk"><input type="checkbox" id="${id}" name="${f.k}" ${v?"checked":""}> ${f.l}</label></div>`;
+    case "bool":
+      if (f.admin && !isAdmin()) { const pede = d.id ? !!d.aguardando : true;
+        return `<div class="${cls}"><label class="chk"><input type="checkbox" id="${id}" name="${f.k}" ${d.publicar ? "checked disabled" : pede ? "checked" : ""}> ${d.publicar ? "Anúncio autorizado e no site" : "Pedir autorização para anunciar no site"}</label><small style="color:var(--muted)">${d.publicar ? "Só o administrador pode tirar o anúncio do site." : "Só o administrador coloca o anúncio no site. Ele verá o pedido em Imóveis."}</small></div>`; }
+      return `<div class="${cls}"><label class="chk"><input type="checkbox" id="${id}" name="${f.k}" ${v?"checked":""}> ${f.l}</label></div>`;
     case "num": return `<div class="${cls}">${lab}<input type="number" step="any" min="0" inputmode="decimal" id="${id}" name="${f.k}" value="${esc(v)}" ${req}></div>`;
     case "date": return `<div class="${cls}">${lab}<input type="date" id="${id}" name="${f.k}" value="${esc(v)}" ${req}></div>`;
     case "datetime": return `<div class="${cls}">${lab}<input type="datetime-local" id="${id}" name="${f.k}" value="${esc(v)}" ${req}></div>`;
@@ -2248,6 +2254,10 @@ Regras: nomes de pessoas em MAIÚSCULAS; CPF, RG e telefones como estão escrito
         if (f.up && typeof v === "string") v = v.toLocaleUpperCase("pt-BR");
         if (f.req && (v === "" || v == null)) return showErr({message:`Preencha o campo “${f.l}”.`}, el);
         out[f.k] = v; }
+      if (col === "imoveis") {
+        if (isAdmin()) { if (out.publicar) out.aguardando = false; else if (!isNew) out.aguardando = !!d.aguardando; else out.aguardando = false; }
+        else { out.aguardando = d.publicar ? false : !!out.publicar; out.publicar = !!d.publicar; }
+      }
       if (col === "usuarios") { out.usuario = norm(out.usuario).replace(/\s+/g, ""); if (S.data.usuarios.some(u => u.usuario === out.usuario && u.id !== d.id)) return showErr({message:"Já existe alguém com esse usuário. Escolha outro."}, ov.querySelector('[name="usuario"]')); }
       const btn = $("#save", ov); btn.disabled = true; btn.textContent = "Salvando…";
       try {
@@ -2330,11 +2340,16 @@ async function unseed(){
 
 /* ---------- Events ---------- */
 document.addEventListener("click", e => {
-  const t = e.target.closest("[data-new],[data-open],[data-edit],[data-act],[data-newfor],[data-vfin],[data-cat],[data-clearcat]"); if (!t) return;
+  const t = e.target.closest("[data-new],[data-open],[data-edit],[data-act],[data-newfor],[data-autoriz],[data-vfin],[data-cat],[data-clearcat]"); if (!t) return;
   if (t.dataset.cat) { S.f = {q:"", fin:"", st:"Disponível", tipo:"", cat:t.dataset.cat, lot:""}; if (location.hash === "#imoveis") render(); else location.hash = "imoveis"; return; }
   if (t.dataset.clearcat) { S.f.cat = ""; S.f.lot = ""; return render(); }
   if (t.dataset.new) return openForm(t.dataset.new);
   if (t.dataset.newfor) { const col = t.dataset.newfor; closeModal(); return openForm(col, null, {imovelId:t.dataset.im}); }
+  if (t.dataset.autoriz) { if (!isAdmin()) return toast("Só o administrador pode autorizar anúncios.");
+    const ok = t.dataset.autoriz === "sim"; t.disabled = true;
+    return S.db.collection("imoveis").doc(t.dataset.id).update(ok ? {publicar:true, aguardando:false, autorizadoPor:S.sess?.nome || "", autorizadoEm:new Date().toISOString()} : {aguardando:false})
+      .then(() => { closeModal(); toast(ok ? "Anúncio autorizado: já está no site" : "Pedido recusado: o imóvel continua fora do site"); })
+      .catch(() => { t.disabled = false; toast("Não foi possível alterar o anúncio"); }); }
   if (t.dataset.edit) { const d = byId(t.dataset.edit, t.dataset.id); closeModal(); return openForm(t.dataset.edit, d); }
   if (t.dataset.open) { const col = t.dataset.open; closeModal(); return col === "imoveis" ? showDetail(col, t.dataset.id, !!t.dataset.pub) : (S.canWrite ? openForm(col, byId(col, t.dataset.id)) : null); }
   if (t.dataset.vfin !== undefined) { S.v.fin = t.dataset.vfin; return render(); }
