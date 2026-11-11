@@ -767,7 +767,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
-const M2_VERSAO = "1.15 · 10/11/2026";
+const M2_VERSAO = "1.16 · 11/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
@@ -1778,7 +1778,7 @@ Object.assign(SCHEMAS, {
     {k:"nome", l:"Nome", req:1, c:3, up:1},
     {k:"usuario", l:"Usuário (login)", req:1, c:3},
     {k:"senha", l:"Senha", t:"password", c:3},
-    {k:"perfil", l:"Perfil", t:"select", o:["Administrador","Corretor","Atendimento"], c:3, def:"Corretor"},
+    {k:"perfil", l:"Perfil", t:"select", o:["Administrador","Corretor","Atendimento","Financeiro"], c:3, def:"Corretor"},
     {k:"telefone", l:"Telefone", c:3},
     {k:"email", l:"E-mail", t:"email", c:3, req: !!window.M2_AUTH},
     {k:"ativo", l:"Acesso ativo", t:"bool", def:true},
