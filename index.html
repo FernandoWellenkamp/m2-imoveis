@@ -663,6 +663,16 @@ header.top,nav.bnav{display:none!important}
 .anxview{z-index:70}
 .shero.shcity{--hero:url("https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Caminho_no_Porto_das_Barcas.jpg/1920px-Caminho_no_Porto_das_Barcas.jpg");background:linear-gradient(90deg,rgba(10,22,52,.82) 0%,rgba(10,22,52,.5) 42%,rgba(10,22,52,.1) 100%),var(--hero) center 60%/cover no-repeat,#1d3b85}
 @media (max-width:860px){.shero.shcity{--hero:url("https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Caminho_no_Porto_das_Barcas.jpg/960px-Caminho_no_Porto_das_Barcas.jpg");background:linear-gradient(180deg,rgba(10,22,52,.55),rgba(10,22,52,.85)),var(--hero) center/cover no-repeat,#1d3b85}}
+.shero.temsl{background:#1d3b85}
+.shero.temsl>.swrap{position:relative;z-index:1}
+.shsls{position:absolute;inset:0;overflow:hidden;z-index:0}
+.shsl{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:cover;object-position:center 60%;opacity:0;transition:opacity 1.4s ease}
+.shsl.on{opacity:1}
+.shov{position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,22,52,.82) 0%,rgba(10,22,52,.5) 42%,rgba(10,22,52,.1) 100%)}
+@media (max-width:860px){.shov{background:linear-gradient(180deg,rgba(10,22,52,.55),rgba(10,22,52,.85))}}
+.shdots{position:absolute;left:0;right:0;bottom:10px;z-index:2;display:flex;gap:8px;justify-content:center}
+.shdots button{width:10px;height:10px;border-radius:50%;border:0;padding:0;background:rgba(255,255,255,.45);cursor:pointer}
+.shdots button[aria-pressed="true"]{background:#fff}
 .shcred{position:absolute;right:10px;bottom:6px;font-size:10.5px;color:rgba(255,255,255,.7);text-shadow:0 1px 2px rgba(0,0,0,.6)}
 .pver{margin-top:auto;padding:16px 10px 0;font-size:11.5px;color:#7f8fb3;letter-spacing:.02em}
 .sver{opacity:.7;font-size:12px}
@@ -769,7 +779,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
-const M2_VERSAO = "1.20 · 11/11/2026";
+const M2_VERSAO = "1.21 · 11/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
@@ -1511,9 +1521,10 @@ const SITE = (() => {
     const dest = all.filter(i => (i.finalidade||"").includes(S.dtab) && !isLote(i)).sort((a,b) => (b.destaque?1:0)-(a.destaque?1:0) || (b.codigo||"").localeCompare(a.codigo||"")).slice(0, 8);
     const byB = {}; all.forEach(i => { if (!i.bairro) return; const b = byB[i.bairro] || (byB[i.bairro] = {n:0, min:Infinity}); b.n++; const p = n0(i.valorVenda) || Infinity; b.min = Math.min(b.min, p); });
     const bairros = Object.entries(byB).sort((a,b) => b[1].n - a[1].n).slice(0, 12);
-    return `<section class="shero shcity"><div class="swrap shgrid">
+    const fds = fundosLista(); const fi = fds.length ? S.heroIdx % fds.length : 0;
+    return `<section class="shero shcity${fds.length ? " temsl" : ""}">${fds.length ? `<div class="shsls" aria-hidden="true">${fds.map((f, i) => `<img class="shsl${i === fi ? " on" : ""}" src="${photoUrl(f)}" alt="">`).join("")}<div class="shov"></div></div>${fds.length > 1 ? `<div class="shdots">${fds.map((f, i) => `<button type="button" data-shdot="${i}" aria-label="Foto ${i + 1} de ${fds.length}" aria-pressed="${i === fi}"></button>`).join("")}</div>` : ""}` : ""}<div class="swrap shgrid">
         <div class="shtxt"><h1>${esc(c.slogan || "Encontre seu imóvel em Parnaíba com a M2")}</h1><p>Casas, apartamentos e lotes para comprar ou alugar, com atendimento de quem conhece a cidade.</p></div>
-        ${searchBox()}</div><small class="shcred">Foto: Porto das Barcas, Parnaíba — Raniel Souza / Wikimedia Commons (CC BY 4.0)</small></section>
+        ${searchBox()}</div>${fds.length ? "" : `<small class="shcred">Foto: Porto das Barcas, Parnaíba — Raniel Souza / Wikimedia Commons (CC BY 4.0)</small>`}</section>
       <section class="ssec"><div class="swrap"><div class="shd"><h2>Imóveis em destaque</h2>
         <div class="spills">${[["Venda","Comprar"],["Locação","Alugar"]].map(([k,l]) => `<button type="button" data-dtab="${k}" aria-pressed="${S.dtab===k}">${l}</button>`).join("")}</div></div>
         ${dest.length ? `<div class="sgrid">${dest.map(card).join("")}</div><div class="smore"><a class="sbtn sbtn-line" href="#vitrine-${S.dtab==="Venda"?"comprar":"alugar"}">Ver todos os imóveis ${S.dtab==="Venda"?"à venda":"para alugar"}</a></div>` : `<p class="sempty">Nenhum imóvel ${S.dtab==="Venda"?"à venda":"para alugar"} publicado no momento.</p>`}</div></section>
@@ -1925,7 +1936,16 @@ let LOGO_ORIG = null;
 function hexOk(c){ return /^#[0-9a-f]{6}$/i.test(c || ""); }
 function inkFor(hex){ const n = parseInt(hex.slice(1), 16), r = n >> 16 & 255, g = n >> 8 & 255, b = n & 255;
   const L = [r,g,b].map(v => { v /= 255; return v <= .03928 ? v / 12.92 : Math.pow((v + .055) / 1.055, 2.4); }); return (.2126*L[0] + .7152*L[1] + .0722*L[2]) > .45 ? "#111111" : "#ffffff"; }
-let fundoUrl = null, fundoDe = null;
+/* Carrossel do fundo da página inicial: até 10 fotos, troca a cada 15 s */
+const FUNDOS_MAX = 10, FUNDO_SEG = 15;
+function fundosLista(){ const a = S.apar || {}; return (Array.isArray(a.fundos) ? a.fundos : a.fundo ? [a.fundo] : []).filter(Boolean).slice(0, FUNDOS_MAX); }
+S.heroIdx = 0;
+function heroMostra(i){ const sl = document.querySelectorAll(".shero .shsl"); if (!sl.length) return; S.heroIdx = ((i % sl.length) + sl.length) % sl.length;
+  sl.forEach((x, k) => x.classList.toggle("on", k === S.heroIdx)); document.querySelectorAll(".shero .shdots button").forEach((b, k) => b.setAttribute("aria-pressed", k === S.heroIdx)); }
+let heroT = null;
+function heroTimer(){ clearInterval(heroT); heroT = setInterval(() => { if (document.hidden) return; const n = document.querySelectorAll(".shero .shsl").length; if (n > 1) heroMostra(S.heroIdx + 1); }, FUNDO_SEG * 1000); }
+heroTimer();
+document.addEventListener("click", e => { const d = e.target.closest("[data-shdot]"); if (!d) return; heroMostra(+d.dataset.shdot); heroTimer(); });
 function applyApar(prev){
   const a = {...(S.apar || {}), ...(prev || {})};
   const imgs = document.querySelectorAll(".brand img");
@@ -1947,14 +1967,6 @@ function applyApar(prev){
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--gold:color-mix(in srgb, ${c2} 70%, white);--warm:color-mix(in srgb, ${c2} 70%, white)}}
 :root[data-theme="dark"]{--gold:color-mix(in srgb, ${c2} 70%, white);--warm:color-mix(in srgb, ${c2} 70%, white)}`;
   if (c3) css += `.pside{background:${c3}}`;
-  if (a.fundo) {
-    if (fundoDe !== a.fundo) { fundoDe = a.fundo; fundoUrl = null;
-      const id = String(a.fundo);
-      (id.startsWith("fs:") ? fsFoto(id.slice(3)) : Promise.resolve(photoUrl(id))).then(u => { if (fundoDe === id) { fundoUrl = u; applyApar(prev); } }); }
-    if (fundoUrl) css += `.shero.shcity{--hero:url("${fundoUrl}") !important}
-@media (max-width:860px){.shero.shcity{--hero:url("${fundoUrl}") !important}}
-.shcred{display:none}`;
-  }
   let st = document.getElementById("m2tema"); if (!st) { st = document.createElement("style"); st.id = "m2tema"; }
   document.body.appendChild(st); // fica depois do <style> do sistema para valer por cima dele
   st.textContent = css;
@@ -2102,23 +2114,39 @@ function vManut(){
         <div class="f c2"><label for="mtCor">Cor da faixa</label><input type="color" id="mtCor" value="${hexOk(MT.cor) ? MT.cor : "#c59019"}" style="width:56px;height:40px;padding:2px;border:1px solid var(--line);border-radius:8px;background:var(--surface)"></div></div>
       <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn" data-man="tema-outra">🔀 Outra arrumação</button><button class="btn" data-man="tema-msg">Atualizar mensagem e cor</button><button class="btn pri" data-man="tema-usa">✓ Usar esta logo</button><button class="btn" data-man="tema-descarta">Descartar</button></span>
     </div>` : ""}</section>`; })()}
-  <section class="panel" style="margin-bottom:16px"><h2>Foto de fundo da página inicial</h2>
-    <p style="color:var(--muted);margin:4px 0 12px">É a foto grande atrás da busca, na primeira tela do site. Use uma foto na horizontal (deitada), de boa qualidade. Ela é reduzida e tratada automaticamente.</p>
-    <div style="border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/5;background:${a.fundo && fundoUrl ? `url('${fundoUrl}') center/cover` : `url('https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Caminho_no_Porto_das_Barcas.jpg/960px-Caminho_no_Porto_das_Barcas.jpg') center 60%/cover`},#1d3b85;max-width:720px"></div>
-    <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px"><button class="btn sm" data-man="fundo">Trocar foto de fundo</button>${a.fundo ? `<button class="btn sm" data-man="fundo-orig">Voltar à foto original (Porto das Barcas)</button>` : ""}<span id="mfundoSt" style="color:var(--muted);align-self:center"></span></span></section>
+  ${(() => { const fds = fundosLista();
+    const th = (src, i) => `<div style="position:relative;border-radius:10px;overflow:hidden;border:1px solid var(--line);aspect-ratio:16/7;background:#1d3b85"><img src="${src}" alt="Foto ${i + 1} do fundo" style="width:100%;height:100%;object-fit:cover;display:block">
+      <span style="position:absolute;left:6px;top:6px;background:rgba(0,0,0,.6);color:#fff;border-radius:6px;padding:1px 7px;font-size:12px;font-weight:600">${i + 1}</span>
+      ${fds.length ? `<span style="position:absolute;right:6px;top:6px;display:flex;gap:4px">${i > 0 ? `<button type="button" class="btn sm" data-fdmove="${i}" data-dir="-1" title="Mostrar antes" aria-label="Mover a foto ${i + 1} para antes">◀</button>` : ""}${i < fds.length - 1 ? `<button type="button" class="btn sm" data-fdmove="${i}" data-dir="1" title="Mostrar depois" aria-label="Mover a foto ${i + 1} para depois">▶</button>` : ""}<button type="button" class="btn sm danger" data-fddel="${i}" title="Excluir esta foto" aria-label="Excluir a foto ${i + 1}">✕</button></span>` : ""}</div>`;
+    return `<section class="panel" style="margin-bottom:16px"><h2>Fotos de fundo da página inicial</h2>
+    <p style="color:var(--muted);margin:4px 0 12px">São as fotos grandes atrás da busca, na primeira tela do site. Você pode ter de 1 a ${FUNDOS_MAX} fotos: com uma só, ela fica parada; com mais de uma, elas se revezam a cada ${FUNDO_SEG} segundos, na ordem abaixo. Use fotos na horizontal (deitadas), de boa qualidade. Elas são reduzidas e tratadas automaticamente. O fundo precisa ter sempre pelo menos 1 foto.</p>
+    ${fds.length ? `<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px">${fds.map((f, i) => th(photoUrl(f), i)).join("")}</div>`
+      : `<div style="max-width:420px">${th("https://upload.wikimedia.org/wikipedia/commons/thumb/b/bb/Caminho_no_Porto_das_Barcas.jpg/960px-Caminho_no_Porto_das_Barcas.jpg", 0)}</div><small style="color:var(--muted)">Hoje aparece a foto original (Porto das Barcas). Ao adicionar suas fotos, ela sai e não volta mais: o fundo passa a ser só as suas fotos.</small>`}
+    <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center">${fds.length < FUNDOS_MAX ? `<button class="btn sm pri" data-man="fundo">+ Adicionar ${fds.length ? "fotos" : "suas fotos"}</button>` : `<span style="color:var(--muted)">Limite de ${FUNDOS_MAX} fotos atingido. Exclua uma para colocar outra.</span>`}<span style="color:var(--muted)">${fds.length}/${FUNDOS_MAX} fotos</span><span id="mfundoSt" style="color:var(--muted)"></span></span></section>`; })()}
   <section class="panel"><h2>Cores</h2>
     <p style="color:var(--muted);margin:4px 0 12px">Mude a cor, confira a tela e clique em <b>Salvar cores</b>. No modo escuro do celular, o sistema clareia a cor principal sozinho para continuar legível.</p>
     <div class="form">${cor("cor1", "Cor principal", "Botões, títulos, links e destaques (hoje o azul da M2).")}${cor("cor2", "Cor de destaque", "Detalhes em dourado.")}${cor("cor3", "Cor do menu lateral", "Fundo do menu da área administrativa.")}</div>
     <span style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn pri" data-man="cores">Salvar cores</button><button class="btn" data-man="cores-desfaz">Desfazer mudanças</button>${(a.cor1 || a.cor2 || a.cor3) ? `<button class="btn" data-man="cores-orig">Voltar às cores originais da M2</button>` : ""}</span></section>
-  <input type="file" id="manIn" accept="image/*" hidden>`;
+  <input type="file" id="manIn" accept="image/*" hidden><input type="file" id="manFundos" accept="image/*" multiple hidden>`;
 }
 let manAlvo = null;
+document.addEventListener("click", e => {
+  const d = e.target.closest("[data-fddel],[data-fdmove]"); if (!d) return;
+  if (!isAdmin()) return toast("Só o administrador pode mudar a aparência.");
+  const L = [...fundosLista()];
+  if (d.dataset.fddel != null) { const i = +d.dataset.fddel;
+    if (L.length <= 1) return toast("O fundo precisa ter pelo menos 1 foto. Adicione a nova foto primeiro e depois exclua esta.");
+    if (!confirm(`Excluir a foto ${i + 1} do fundo?`)) return; L.splice(i, 1); S.heroIdx = 0;
+    return salvaApar({fundos: L.length ? L : null, fundo: null}, L.length ? "Foto excluída do fundo" : "Sem fotos suas: voltou a foto original"); }
+  const i = +d.dataset.fdmove, j = i + (+d.dataset.dir); if (j < 0 || j >= L.length) return; [L[i], L[j]] = [L[j], L[i]];
+  return salvaApar({fundos: L, fundo: null}, "Ordem das fotos alterada"); });
 document.addEventListener("click", e => { const c = e.target.closest("[data-mtchip]"); if (!c) return; const i = $("#mtTema"); if (i) { i.value = c.dataset.mtchip; i.classList.remove("bad"); i.focus(); } });
 document.addEventListener("click", e => {
   const b = e.target.closest("[data-man]"); if (!b) return;
   if (!isAdmin()) return toast("Só o administrador pode mudar a aparência.");
   const m = b.dataset.man;
-  if (m === "logo" || m === "logoEscuro" || m === "fundo") { manAlvo = m; const inp = $("#manIn"); inp.value = ""; inp.click(); return; }
+  if (m === "fundo") { if (fundosLista().length >= FUNDOS_MAX) return toast(`Limite de ${FUNDOS_MAX} fotos. Exclua uma para colocar outra.`); const inp = $("#manFundos"); inp.value = ""; inp.click(); return; }
+  if (m === "logo" || m === "logoEscuro") { manAlvo = m; const inp = $("#manIn"); inp.value = ""; inp.click(); return; }
   if (m === "tema-cria") { const tx = ($("#mtTema").value || "").trim(), ate = $("#mtAte").value || "";
     if (!tx) { $("#mtTema").classList.add("bad"); $("#mtTema").focus(); return toast("Escreva o tema da logo (ex.: Páscoa)."); }
     if (ate && ate < hojeISO()) { $("#mtAte").classList.add("bad"); return toast("A data para voltar à logo normal já passou. Escolha uma data de hoje em diante."); }
@@ -2139,7 +2167,6 @@ document.addEventListener("click", e => {
       .catch(err => toast("Não foi possível tirar o tema: " + ((err && err.message) || "tente de novo"))); }
   if (m === "logo-orig") return salvaApar({logo:null}, "Logo original de volta");
   if (m === "logoEscuro-orig") return salvaApar({logoEscuro:null}, "Pronto: o fundo escuro usa a logo principal");
-  if (m === "fundo-orig") return salvaApar({fundo:null}, "Foto de fundo original de volta");
   if (m === "cores-orig") { if (!confirm("Voltar às cores originais da M2 (azul e dourado)?")) return; return salvaApar({cor1:null, cor2:null, cor3:null}, "Cores originais de volta"); }
   if (m === "cores-desfaz") { applyApar(); render(); return toast("Mudanças desfeitas"); }
   if (m === "cores") { const v = {}; for (const k of ["cor1","cor2","cor3"]) { const x = $("#mc_" + k).value; if (!hexOk(x)) return toast("Escolha uma cor válida."); v[k] = x.toLowerCase() === APAR_PADRAO[k] ? null : x; }
@@ -2149,17 +2176,30 @@ document.addEventListener("input", e => { const k = e.target.dataset && e.target
   const t = $("#mc_" + k + "_t"); if (t) t.textContent = e.target.value;
   applyApar({cor1:$("#mc_cor1").value, cor2:$("#mc_cor2").value, cor3:$("#mc_cor3").value}); });
 document.addEventListener("change", async e => {
+  if (e.target.id !== "manFundos") return;
+  const files = [...(e.target.files || [])]; if (!files.length) return;
+  if (!S.assets) return toast("O envio de fotos não está disponível aqui.");
+  const L = [...fundosLista()]; const cabe = FUNDOS_MAX - L.length;
+  const fotos = files.filter(f => /^image\//.test(f.type));
+  if (fotos.length < files.length) toast("Alguns arquivos não eram fotos e foram ignorados.");
+  if (!fotos.length) return;
+  const vao = fotos.slice(0, cabe); const sobra = fotos.length - vao.length;
+  const fala = t => { const x = $("#mfundoSt"); if (x) x.textContent = t; };
+  let ok = 0, erro = "";
+  for (let k = 0; k < vao.length; k++) {
+    const de = vao.length > 1 ? ` (${k + 1} de ${vao.length})` : "";
+    try { const r = await S.assets.upload(vao[k], st => fala((st === "tratando" ? "Tratando a foto" : "Enviando a foto") + de + "…")); L.push(r.id); ok++; }
+    catch (err) { erro = (err && err.message) || "Não foi possível enviar uma das fotos."; }
+  }
+  fala("");
+  if (ok) await salvaApar({fundos: L, fundo: null}, ok > 1 ? `${ok} fotos adicionadas ao fundo` : "Foto adicionada ao fundo");
+  if (sobra > 0) toast(`O limite é ${FUNDOS_MAX} fotos: ${sobra} ${sobra > 1 ? "fotos ficaram" : "foto ficou"} de fora.`);
+  if (erro) toast(erro);
+});
+document.addEventListener("change", async e => {
   if (e.target.id !== "manIn") return; const file = e.target.files && e.target.files[0]; if (!file || !manAlvo) return;
   const alvo = manAlvo; manAlvo = null;
   try {
-    if (alvo === "fundo") {
-      if (!/^image\//.test(file.type)) return toast("Escolha uma foto (JPG ou PNG).");
-      if (!S.assets) return toast("O envio de fotos não está disponível aqui.");
-      const stEl = () => $("#mfundoSt"); const fala = t => { const x = stEl(); if (x) x.textContent = t; };
-      fala("Tratando a foto…");
-      const r = await S.assets.upload(file, st => fala(st === "tratando" ? "Tratando a foto…" : "Enviando a foto…"));
-      fala(""); return salvaApar({fundo: r.id}, "Foto de fundo trocada");
-    }
     const u = await logoReduz(file);
     return salvaApar({[alvo]: u}, "Logo trocada");
   } catch (err) { const x = $("#mfundoSt"); if (x) x.textContent = ""; toast((err && err.message) || "Não foi possível usar esse arquivo."); }
