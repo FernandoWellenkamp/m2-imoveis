@@ -549,6 +549,13 @@ a.btn.pri{color:var(--accent-ink)}
 .smini div{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:6px}
 .smini dt{color:var(--muted)}.smini dd{margin:0;font-weight:600}
 .sform{display:grid;gap:10px}
+.sform .sconsent{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.45;color:var(--muted);cursor:pointer}
+.sform .sconsent input{width:18px;height:18px;flex:none;margin:1px 0 0;padding:0;accent-color:var(--accent)}
+.sform .sconsent a{color:var(--accent);font-weight:600}
+.spol h2{font-size:19px;color:var(--accent);margin:26px 0 8px}
+.spol p,.spol li{font-size:15.5px;line-height:1.6;max-width:72ch}
+.spol ul{padding-left:20px;margin:0 0 10px}
+.spol .supd{color:var(--muted);font-size:14px}
 .s2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .smsg{margin:0;font-weight:600;font-size:14px}
 .smsg.ok{color:var(--ok)}.smsg.bad{color:var(--bad)}
@@ -798,7 +805,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
-const M2_VERSAO = "1.24 · 11/11/2026";
+const M2_VERSAO = "1.25 · 13/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
@@ -1491,8 +1498,8 @@ const SITE = (() => {
       <div class="sfabout">${logoImgs("")}<p>Venda e locação de casas, apartamentos e lotes em Parnaíba e região.</p><p class="mono">CRECI ${esc(c.creci || "0476-PJ")}</p></div>
       <div><h4>Imóveis</h4><a href="#vitrine-comprar">Imóveis à venda</a><a href="#vitrine-alugar">Imóveis para alugar</a><a href="#vitrine-lotes">Loteamentos</a><a href="#vitrine-favoritos">Favoritos</a></div>
       <div><h4>Proprietário</h4><a href="#vitrine-anunciar">Anunciar para venda</a><a href="#vitrine-anunciar">Anunciar para aluguel</a><a href="#vitrine-anunciar">Avaliação do imóvel</a></div>
-      <div><h4>Atendimento</h4>${c.whatsapp ? `<p>WhatsApp <b class="mono">${esc(c.whatsapp)}</b></p>` : ""}${c.telefone ? `<p>Telefone <b class="mono">${esc(c.telefone)}</b></p>` : ""}${c.email ? `<p>${esc(c.email)}</p>` : ""}${c.endereco ? `<p>${esc(c.endereco)}</p>` : ""}${!c.whatsapp && !c.telefone && !c.email && !c.endereco ? `<p>${S.internal ? "Preencha os contatos em Dados da imobiliária." : "Fale com a nossa equipe."}</p>` : ""}<a href="#vitrine-contato">Fale conosco</a></div>
-    </div><div class="swrap sfbase">© ${new Date().getFullYear()} ${esc(c.nome || "M2 Imóveis e Loteamentos")}${S.internal && S.canWrite ? ` · <button class="linkbtn" data-act="cfg">Dados da imobiliária</button>` : ""} · <span class="sver">versão ${M2_VERSAO}</span></div></footer>
+      <div><h4>Atendimento</h4>${c.whatsapp ? `<p>WhatsApp <b class="mono">${esc(c.whatsapp)}</b></p>` : ""}${c.telefone ? `<p>Telefone <b class="mono">${esc(c.telefone)}</b></p>` : ""}${c.email ? `<p>${esc(c.email)}</p>` : ""}${c.endereco ? `<p>${esc(c.endereco)}</p>` : ""}${!c.whatsapp && !c.telefone && !c.email && !c.endereco ? `<p>${S.internal ? "Preencha os contatos em Dados da imobiliária." : "Fale com a nossa equipe."}</p>` : ""}<a href="#vitrine-contato">Fale conosco</a><a href="#vitrine-privacidade">Política de privacidade</a></div>
+    </div><div class="swrap sfbase">© ${new Date().getFullYear()} ${esc(c.nome || "M2 Imóveis e Loteamentos")} · <a href="#vitrine-privacidade" style="color:inherit">Privacidade</a>${S.internal && S.canWrite ? ` · <button class="linkbtn" data-act="cfg">Dados da imobiliária</button>` : ""} · <span class="sver">versão ${M2_VERSAO}</span></div></footer>
     ${c.whatsapp ? `<div class="swa" title="WhatsApp ${esc(c.whatsapp)}">${ic("chat",22)}<span>${esc(c.whatsapp)}</span></div>` : ""}`;
   }
   function card(i){
@@ -1591,11 +1598,11 @@ const SITE = (() => {
         <form class="sbox sform" data-sform="visita" data-im="${i.id}"><h3>Agendar visita</h3>
           <input name="nome" placeholder="Seu nome" required aria-label="Seu nome"><input name="telefone" placeholder="Telefone / WhatsApp" required inputmode="tel" aria-label="Telefone">
           <div class="s2"><input type="date" name="data" min="${today}" required aria-label="Data da visita"><select name="periodo" aria-label="Período"><option>Manhã</option><option>Tarde</option></select></div>
-          <button class="sbtn sbtn-gold" type="submit">Agendar visita</button>${flash("visita")}</form>
+          ${consent()}<button class="sbtn sbtn-gold" type="submit">Agendar visita</button>${flash("visita")}</form>
         <form class="sbox sform" data-sform="contato" data-im="${i.id}"><h3>Fale conosco</h3>
           <input name="nome" placeholder="Seu nome" required aria-label="Seu nome"><input name="telefone" placeholder="Telefone / WhatsApp" required inputmode="tel" aria-label="Telefone"><input name="email" type="email" placeholder="E-mail (opcional)" aria-label="E-mail">
           <textarea name="msg" rows="3" aria-label="Mensagem">Olá! Tenho interesse no imóvel ${esc(i.codigo)}.</textarea>
-          <button class="sbtn sbtn-dark" type="submit">Enviar mensagem</button>${flash("contato")}</form>
+          ${consent()}<button class="sbtn sbtn-dark" type="submit">Enviar mensagem</button>${flash("contato")}</form>
       </aside></div>
     ${sim.length ? `<section class="ssec"><div class="swrap"><h2>Imóveis parecidos</h2><div class="sgrid">${sim.map(card).join("")}</div></div></section>` : ""}`;
   }
@@ -1610,7 +1617,7 @@ const SITE = (() => {
         <input name="valor" inputmode="numeric" placeholder="Valor pretendido (opcional)" aria-label="Valor pretendido">
         <input name="nome" placeholder="Seu nome" required aria-label="Seu nome"><input name="telefone" placeholder="Telefone / WhatsApp" required inputmode="tel" aria-label="Telefone">
         <textarea name="msg" rows="3" placeholder="Conte mais: área, quartos, documentação…" aria-label="Mais informações"></textarea>
-        <button class="sbtn sbtn-gold" type="submit">Quero anunciar</button>${flash("anunciar")}</form></div>`;
+        ${consent()}<button class="sbtn sbtn-gold" type="submit">Quero anunciar</button>${flash("anunciar")}</form></div>`;
   }
   function sobre(){
     const c = cfg();
@@ -1624,7 +1631,42 @@ const SITE = (() => {
     return `<div class="swrap sbread"><a href="#vitrine">Início</a> › Contato</div><div class="swrap spage"><div><h1>Fale com a M2</h1>
       <p>Mande sua mensagem pelo formulário${c.whatsapp ? " ou chame no WhatsApp" : ""}.</p>
       <dl class="smini">${c.whatsapp ? `<div><dt>WhatsApp</dt><dd class="mono">${esc(c.whatsapp)}</dd></div>` : ""}${c.telefone ? `<div><dt>Telefone</dt><dd class="mono">${esc(c.telefone)}</dd></div>` : ""}${c.email ? `<div><dt>E-mail</dt><dd>${esc(c.email)}</dd></div>` : ""}${c.endereco ? `<div><dt>Endereço</dt><dd>${esc(c.endereco)}</dd></div>` : ""}</dl></div>
-      <form class="sbox sform" data-sform="contato"><h3>Envie sua mensagem</h3><input name="nome" placeholder="Seu nome" required aria-label="Seu nome"><input name="telefone" placeholder="Telefone / WhatsApp" required inputmode="tel" aria-label="Telefone"><input name="email" type="email" placeholder="E-mail (opcional)" aria-label="E-mail"><textarea name="msg" rows="4" placeholder="Como podemos ajudar?" aria-label="Mensagem"></textarea><button class="sbtn sbtn-gold" type="submit">Enviar</button>${flash("contato")}</form></div>`;
+      <form class="sbox sform" data-sform="contato"><h3>Envie sua mensagem</h3><input name="nome" placeholder="Seu nome" required aria-label="Seu nome"><input name="telefone" placeholder="Telefone / WhatsApp" required inputmode="tel" aria-label="Telefone"><input name="email" type="email" placeholder="E-mail (opcional)" aria-label="E-mail"><textarea name="msg" rows="4" placeholder="Como podemos ajudar?" aria-label="Mensagem"></textarea>${consent()}<button class="sbtn sbtn-gold" type="submit">Enviar</button>${flash("contato")}</form></div>`;
+  }
+  /* LGPD: caixa de consentimento dos formulários e página da política */
+  const POL_DATA = "13/11/2026";
+  const consent = () => `<label class="sconsent"><input type="checkbox" name="lgpd" value="1" required> <span>Li e concordo com a <a href="#vitrine-privacidade" target="_blank" rel="noopener">Política de Privacidade</a> e autorizo a M2 a usar meus dados para responder a este pedido.</span></label>`;
+  function privacidade(){
+    const c = cfg(); const nome = esc(c.nome || "M2 Imóveis e Loteamentos"); const mail = esc(c.email || "m2imoveispi@gmail.com");
+    const contato = [`e-mail <b>${mail}</b>`, c.whatsapp && `WhatsApp <b class="mono">${esc(c.whatsapp)}</b>`, c.telefone && `telefone <b class="mono">${esc(c.telefone)}</b>`].filter(Boolean).join(", ");
+    return `<div class="swrap sbread"><a href="#vitrine">Início</a> › Política de privacidade</div><div class="swrap spage one"><div class="spol">
+      <h1>Política de Privacidade</h1>
+      <p class="supd">Última atualização: ${POL_DATA}</p>
+      <p>Esta política explica como a <b>${nome}</b> (CRECI ${esc(c.creci || "0476-PJ")}, Parnaíba-PI) trata os dados pessoais de quem usa este site e de quem negocia imóveis com a gente, de acordo com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018, LGPD).</p>
+      <h2>1. Quem cuida dos seus dados</h2>
+      <p>A ${nome} é a controladora dos dados. Para qualquer assunto sobre privacidade, fale com o nosso encarregado pelo ${contato}${c.endereco ? `, ou no endereço ${esc(c.endereco)}` : ""}.</p>
+      <h2>2. Quais dados coletamos</h2>
+      <ul><li><b>Formulários do site</b> (contato, agendar visita e anunciar imóvel): nome, telefone/WhatsApp, e-mail (opcional), a mensagem e as informações do imóvel ou da visita que você escrever.</li>
+        <li><b>Atendimento e negócios</b>: quando você compra, vende, aluga ou anuncia um imóvel conosco, também podemos tratar documentos e dados de cadastro (como CPF, RG, estado civil, endereço, renda e documentos do imóvel), necessários para o contrato e para as exigências legais.</li>
+        <li><b>Favoritos</b>: os imóveis que você marca com o coração ficam guardados só no seu aparelho (armazenamento do navegador). Não usamos cookies de propaganda nem ferramentas de rastreamento.</li></ul>
+      <h2>3. Para que usamos</h2>
+      <ul><li>Responder seu contato, agendar visitas e enviar informações sobre os imóveis que você pediu;</li>
+        <li>Avaliar, anunciar e intermediar a venda ou locação do seu imóvel;</li>
+        <li>Preparar propostas, contratos e documentos do negócio;</li>
+        <li>Cumprir obrigações legais e regulatórias do setor imobiliário (por exemplo, normas do COFECI/CRECI e de prevenção à lavagem de dinheiro).</li></ul>
+      <p>As bases legais são o seu <b>consentimento</b> (art. 7º, I), os <b>procedimentos do contrato</b> que você pediu (art. 7º, V), o <b>cumprimento de obrigação legal</b> (art. 7º, II) e, em alguns casos, o <b>legítimo interesse</b> da imobiliária em atender bem os clientes (art. 7º, IX).</p>
+      <h2>4. Com quem compartilhamos</h2>
+      <p>Não vendemos seus dados. Eles podem ser compartilhados apenas quando necessário com: as partes do negócio (proprietário, comprador ou inquilino), cartórios, bancos e correspondentes de financiamento, advogados e contadores, e autoridades públicas quando a lei exigir.</p>
+      <p>Para funcionar, o site usa serviços de tecnologia que guardam ou processam dados em nosso nome: <b>Google Firebase</b> (banco de dados e login da equipe), <b>Google Gemini</b> (leitura automática de fichas preenchidas, usada só pela equipe), <b>Cloudinary</b> (vídeos dos imóveis), <b>YouTube</b> (vídeos incorporados) e <b>GitHub</b> (hospedagem do site). Alguns desses serviços ficam fora do Brasil; nesses casos, a transferência segue o que a LGPD permite (art. 33).</p>
+      <h2>5. Por quanto tempo guardamos</h2>
+      <p>Os contatos do site ficam guardados enquanto houver atendimento ou interesse no imóvel e, depois, até você pedir a exclusão. Dados de negócios fechados são guardados pelo prazo exigido por lei (em geral, no mínimo 5 anos, conforme a Lei nº 9.613/1998) e pelo tempo necessário para defender direitos em eventual processo.</p>
+      <h2>6. Seus direitos</h2>
+      <p>Você pode, a qualquer momento e sem custo: confirmar se tratamos seus dados e acessá-los; corrigir dados incompletos ou desatualizados; pedir a anonimização, o bloqueio ou a exclusão de dados desnecessários; pedir a portabilidade; saber com quem compartilhamos; e revogar o consentimento (art. 18 da LGPD). Basta falar com a gente pelo ${contato}. Se não ficar satisfeito, você também pode reclamar à Autoridade Nacional de Proteção de Dados (ANPD), em <a href="https://www.gov.br/anpd" target="_blank" rel="noopener">gov.br/anpd</a>.</p>
+      <h2>7. Segurança</h2>
+      <p>O site usa conexão segura (HTTPS). A área administrativa exige usuário e senha, e só a equipe autorizada da imobiliária acessa os contatos, fichas e documentos.</p>
+      <h2>8. Mudanças nesta política</h2>
+      <p>Podemos atualizar esta política. A data da última atualização fica no alto desta página.</p>
+      <p><a class="sbtn sbtn-gold" href="#vitrine-contato">Falar com a M2</a></p></div></div>`;
   }
   function favoritos(){
     const L = S.data.imoveis.filter(i => fav.has(i.id));
@@ -1643,6 +1685,7 @@ const SITE = (() => {
     else if (h === "vitrine-sobre") body = sobre();
     else if (h === "vitrine-contato") body = contato();
     else if (h === "vitrine-favoritos") body = favoritos();
+    else if (h === "vitrine-privacidade") body = privacidade();
     else body = home();
     return page(body);
   }
@@ -1677,15 +1720,17 @@ const SITE = (() => {
     e.preventDefault();
     const d = Object.fromEntries(new FormData(f)); const btn = f.querySelector("button[type=submit]");
     const kind = f.dataset.sform; const im = f.dataset.im ? byId("imoveis", f.dataset.im) : null;
+    if (!d.lgpd) { const cb = f.querySelector('[name="lgpd"]'); toast("Para enviar, marque a caixa concordando com a Política de Privacidade."); if (cb) { cb.focus(); cb.closest(".sconsent").style.color = "var(--bad)"; } return; }
     btn.disabled = true;
     try {
       const now = new Date().toISOString();
-      const lead = {nome: d.nome, telefone: d.telefone, email: d.email || "", origem: "Site", etapa: kind === "visita" ? "Visita agendada" : "Novo", criadoEm: now, imovelId: im ? im.id : "",
+      const lgpd = {aceito: true, em: now, politica: POL_DATA};
+      const lead = {nome: d.nome, telefone: d.telefone, email: d.email || "", origem: "Site", lgpd, etapa: kind === "visita" ? "Visita agendada" : "Novo", criadoEm: now, imovelId: im ? im.id : "",
         interesse: kind === "anunciar" ? "" : im ? (finOf(im) === "Locação" ? "Alugar" : "Comprar") : "",
         obs: kind === "anunciar" ? `Quer ${d.fin.toLowerCase()} ${d.tipo}${d.bairro ? " no " + d.bairro : ""}${d.valor ? ", valor pretendido " + d.valor : ""}. ${d.msg || ""}` : kind === "visita" ? `Pediu visita pelo site: ${d.data} (${d.periodo}).` : (d.msg || "")};
       const ref = await S.db.collection("leads").add(lead);
       let captacaoId = "";
-      if (kind === "anunciar") { const cref = await S.db.collection("captacoes").add({propNome: d.nome, propTelefone: d.telefone, origem: "Site", finalidade: d.fin === "Alugar" ? "Alugar" : "Vender", tipo: d.tipo, bairro: d.bairro || "", valorPretendido: d.valor ? +String(d.valor).replace(/\D/g, "") || null : null, status: "Novo contato", obs: d.msg || "", criadoEm: now}); captacaoId = cref.id; }
+      if (kind === "anunciar") { const cref = await S.db.collection("captacoes").add({propNome: d.nome, propTelefone: d.telefone, origem: "Site", finalidade: d.fin === "Alugar" ? "Alugar" : "Vender", tipo: d.tipo, bairro: d.bairro || "", valorPretendido: d.valor ? +String(d.valor).replace(/\D/g, "") || null : null, status: "Novo contato", obs: d.msg || "", lgpd, criadoEm: now}); captacaoId = cref.id; }
       await S.db.collection("mensagens").add({tipo: kind === "visita" ? "Visita" : kind === "anunciar" ? "Anunciar" : "Contato", nome: d.nome, telefone: d.telefone, email: d.email || "", imovelId: im ? im.id : "", leadId: ref.id, captacaoId, texto: lead.obs || d.msg || "", lida: false, respondida: false, criadoEm: now});
       if (kind === "visita") await S.db.collection("visitas").add({imovelId: im.id, leadId: ref.id, data: `${d.data}T${d.periodo === "Manhã" ? "09:00" : "15:00"}`, status: "Agendada", corretor: "", feedback: "Agendada pelo site", criadoEm: now});
       S.sflash = {k: kind, h: location.hash, cls: "ok", t: kind === "visita" ? "Pedido de visita enviado! Um corretor vai confirmar com você." : kind === "anunciar" ? "Recebemos os dados! Vamos entrar em contato para a avaliação." : "Mensagem enviada! Responderemos em breve."};
