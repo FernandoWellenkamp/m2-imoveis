@@ -805,7 +805,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
-const M2_VERSAO = "1.25 · 13/11/2026";
+const M2_VERSAO = "1.26 · 19/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
@@ -1091,6 +1091,7 @@ const VIEWS = [
   {id:"fichas", l:"Fichas", int:1},
   {id:"cadastro", l:"Cadastro interno", int:1},
   {id:"manutencao", l:"Manutenção", int:1},
+  {id:"edicoes", l:"Edições", int:1},
   {id:"vitrine", l:"Site"},
   {id:"acesso", l:"Área administrativa"},
 ];
@@ -1124,14 +1125,14 @@ function render(){
   renderNav();
   const v = curView();
   const el = $("#view");
-  const fn = {painel:vPainel, imoveis:vImoveis, proprietarios:vProp, locacoes:vLoc, interessados:vLeads, negocios:vNeg, mensagens:vMensagens, captacao:vCaptacao, fichas:vFichas, cadastro:vCadastro, manutencao:vManut}[v];
+  const fn = {painel:vPainel, imoveis:vImoveis, proprietarios:vProp, locacoes:vLoc, interessados:vLeads, negocios:vNeg, mensagens:vMensagens, captacao:vCaptacao, fichas:vFichas, cadastro:vCadastro, manutencao:vManut, edicoes:vEdicoes}[v];
   const site = v === "vitrine" || v === "acesso";
   document.body.classList.toggle("sitemode", site);
   document.body.classList.toggle("portalmode", !site);
+  const ae = document.activeElement, txk = ae && ae.dataset && ae.dataset.tx, sel = txk ? [ae.selectionStart, ae.selectionEnd, ae.scrollTop] : null;
   el.innerHTML = v === "vitrine" ? SITE.view() : v === "acesso" ? SITE.page(vAcesso()) : portalLayout(v, fn());
   el.querySelectorAll(".tbl table").forEach(t => { const hs = [...t.querySelectorAll("th")].map(x => x.textContent); t.querySelectorAll("tbody tr").forEach(r => [...r.children].forEach((td, k) => td.dataset.label = hs[k] || "")); });
-  const active = document.activeElement?.id;
-  if (active && $("#"+active)) {}
+  if (txk) { const t = el.querySelector(`[data-tx="${txk}"]`); if (t) { t.focus(); try { t.setSelectionRange(sel[0], sel[1]); t.scrollTop = sel[2]; } catch (e) {} } }
 }
 window.addEventListener("hashchange", () => { render(); window.scrollTo(0,0); });
 
@@ -1495,7 +1496,7 @@ const SITE = (() => {
   function footer(){
     const c = cfg();
     return `<footer class="sfoot"><div class="swrap sfgrid">
-      <div class="sfabout">${logoImgs("")}<p>Venda e locação de casas, apartamentos e lotes em Parnaíba e região.</p><p class="mono">CRECI ${esc(c.creci || "0476-PJ")}</p></div>
+      <div class="sfabout">${logoImgs("")}<p>${esc(tx("rod.texto"))}</p><p class="mono">CRECI ${esc(c.creci || "0476-PJ")}</p></div>
       <div><h4>Imóveis</h4><a href="#vitrine-comprar">Imóveis à venda</a><a href="#vitrine-alugar">Imóveis para alugar</a><a href="#vitrine-lotes">Loteamentos</a><a href="#vitrine-favoritos">Favoritos</a></div>
       <div><h4>Proprietário</h4><a href="#vitrine-anunciar">Anunciar para venda</a><a href="#vitrine-anunciar">Anunciar para aluguel</a><a href="#vitrine-anunciar">Avaliação do imóvel</a></div>
       <div><h4>Atendimento</h4>${c.whatsapp ? `<p>WhatsApp <b class="mono">${esc(c.whatsapp)}</b></p>` : ""}${c.telefone ? `<p>Telefone <b class="mono">${esc(c.telefone)}</b></p>` : ""}${c.email ? `<p>${esc(c.email)}</p>` : ""}${c.endereco ? `<p>${esc(c.endereco)}</p>` : ""}${!c.whatsapp && !c.telefone && !c.email && !c.endereco ? `<p>${S.internal ? "Preencha os contatos em Dados da imobiliária." : "Fale com a nossa equipe."}</p>` : ""}<a href="#vitrine-contato">Fale conosco</a><a href="#vitrine-privacidade">Política de privacidade</a></div>
@@ -1549,16 +1550,16 @@ const SITE = (() => {
     const bairros = Object.entries(byB).sort((a,b) => b[1].n - a[1].n).slice(0, 12);
     const prevFd = !!(S.sess && isAdmin() && FD); const fds = prevFd ? FD : fundosLista(); const fi = fds.length ? S.heroIdx % fds.length : 0;
     return `${prevFd ? `<div class="sprev" role="status"><span>👁 <b>Prévia:</b> você está vendo as fotos do fundo que ainda <b>não foram salvas</b>. Os clientes ainda veem as antigas.</span><a href="#manutencao">Voltar à Manutenção</a><button type="button" data-man="fundos-salva">💾 Salvar e publicar</button></div>` : ""}<section class="shero shcity${fds.length ? " temsl" : ""}">${fds.length ? `<div class="shsls" aria-hidden="true">${fds.map((f, i) => `<div class="shsl${i === fi ? " on" : ""}"><img class="shpc" src="${photoUrl(fPc(f))}" alt=""><img class="shcel" src="${photoUrl(fCel(f))}" alt=""></div>`).join("")}<div class="shov"></div></div>${fds.length > 1 ? `<div class="shdots">${fds.map((f, i) => `<button type="button" data-shdot="${i}" aria-label="Foto ${i + 1} de ${fds.length}" aria-pressed="${i === fi}"></button>`).join("")}</div>` : ""}` : ""}<div class="swrap shgrid">
-        <div class="shtxt"><h1>${esc(c.slogan || "Encontre seu imóvel em Parnaíba com a M2")}</h1><p>Casas, apartamentos e lotes para comprar ou alugar, com atendimento de quem conhece a cidade.</p></div>
+        <div class="shtxt"><h1>${esc(tx("home.titulo"))}</h1><p>${esc(tx("home.sub"))}</p></div>
         ${searchBox()}</div>${fds.length ? "" : `<small class="shcred">Foto: Porto das Barcas, Parnaíba — Raniel Souza / Wikimedia Commons (CC BY 4.0)</small>`}</section>
-      <section class="ssec"><div class="swrap"><div class="shd"><h2>Imóveis em destaque</h2>
+      <section class="ssec"><div class="swrap"><div class="shd"><h2>${esc(tx("home.destaques"))}</h2>
         <div class="spills">${[["Venda","Comprar"],["Locação","Alugar"]].map(([k,l]) => `<button type="button" data-dtab="${k}" aria-pressed="${S.dtab===k}">${l}</button>`).join("")}</div></div>
         ${dest.length ? `<div class="sgrid">${dest.map(card).join("")}</div><div class="smore"><a class="sbtn sbtn-line" href="#vitrine-${S.dtab==="Venda"?"comprar":"alugar"}">Ver todos os imóveis ${S.dtab==="Venda"?"à venda":"para alugar"}</a></div>` : `<p class="sempty">Nenhum imóvel ${S.dtab==="Venda"?"à venda":"para alugar"} publicado no momento.</p>`}</div></section>
-      <section class="ssec salt"><div class="swrap"><h2 class="sc">Por que anunciar e comprar com a M2</h2><div class="sdif">
-        ${[["Conhecemos Parnaíba","Bairros, loteamentos e preços da região: indicamos o imóvel certo para o seu momento."],["Visita no seu horário","Agende pelo site e um corretor confirma com você antes da visita."],["Documentação sem dor de cabeça","Acompanhamos contrato, escritura e financiamento do começo ao fim."],["Loteamentos","Lotes em loteamentos da região, com informações de quadra e lote."]].map(([t,d]) => `<div><h3>${t}</h3><p>${d}</p></div>`).join("")}</div></div></section>
-      <section class="ssec"><div class="swrap scta"><div><h2>Quer vender ou alugar seu imóvel?</h2><p>Anuncie com a M2 e receba uma avaliação gratuita do valor de mercado.</p></div><a class="sbtn sbtn-gold" href="#vitrine-anunciar">Anunciar meu imóvel</a></div></section>
-      ${bairros.length ? `<section class="ssec"><div class="swrap"><h2 class="sc">Bairros em destaque</h2><div class="sbairros">${bairros.map(([b,v]) => `<button type="button" data-sbairro="${esc(b)}"><b>${esc(b)}</b><span>${v.n} imóve${v.n>1?"is":"l"}${v.min<Infinity ? ` · a partir de ${money(v.min)}` : ""}</span></button>`).join("")}</div></div></section>` : ""}
-      <section class="ssec salt"><div class="swrap"><h2 class="sc">Mais opções</h2><div class="slinks">
+      <section class="ssec salt"><div class="swrap"><h2 class="sc">${esc(tx("home.porque"))}</h2><div class="sdif">
+        ${[1,2,3,4].map(n => `<div><h3>${esc(tx("home.d"+n+"t"))}</h3><p>${esc(tx("home.d"+n+"x"))}</p></div>`).join("")}</div></div></section>
+      <section class="ssec"><div class="swrap scta"><div><h2>${esc(tx("home.ctat"))}</h2><p>${esc(tx("home.ctax"))}</p></div><a class="sbtn sbtn-gold" href="#vitrine-anunciar">${esc(tx("home.ctab"))}</a></div></section>
+      ${bairros.length ? `<section class="ssec"><div class="swrap"><h2 class="sc">${esc(tx("home.bairros"))}</h2><div class="sbairros">${bairros.map(([b,v]) => `<button type="button" data-sbairro="${esc(b)}"><b>${esc(b)}</b><span>${v.n} imóve${v.n>1?"is":"l"}${v.min<Infinity ? ` · a partir de ${money(v.min)}` : ""}</span></button>`).join("")}</div></div></section>` : ""}
+      <section class="ssec salt"><div class="swrap"><h2 class="sc">${esc(tx("home.mais"))}</h2><div class="slinks">
         <a href="#vitrine-comprar" data-slink="Casa">Casas à venda em Parnaíba</a><a href="#vitrine-comprar" data-slink="Apartamento">Apartamentos à venda</a><a href="#vitrine-alugar" data-slink="">Imóveis para alugar</a><a href="#vitrine-lotes" data-slink="">Lotes e terrenos</a><a href="#vitrine-comprar" data-slink="Casa em condomínio">Casas em condomínio</a></div></div></section>`;
   }
   function listing(){
@@ -1609,27 +1610,27 @@ const SITE = (() => {
   function anunciar(){
     const bairros = [...new Set(S.data.imoveis.map(i => i.bairro).filter(Boolean))].sort();
     return `<div class="swrap sbread"><a href="#vitrine">Início</a> › Anunciar imóvel</div>
-    <div class="swrap spage"><div><h1>Anuncie seu imóvel com a M2</h1><p>Conte um pouco sobre o imóvel. Um corretor entra em contato para combinar a avaliação gratuita e as fotos.</p>
-      <ol class="ssteps"><li><b>Você envia os dados</b>Leva menos de dois minutos.</li><li><b>Avaliação gratuita</b>Visitamos o imóvel e sugerimos o valor de mercado.</li><li><b>Divulgação</b>Fotos profissionais e anúncio no nosso site e nos portais.</li></ol></div>
+    <div class="swrap spage"><div><h1>${esc(tx("anun.titulo"))}</h1>${paras(tx("anun.texto"))}
+      <ol class="ssteps">${[1,2,3].map(n => `<li><b>${esc(tx("anun.p"+n+"t"))}</b>${esc(tx("anun.p"+n+"x"))}</li>`).join("")}</ol></div>
       <form class="sbox sform" data-sform="anunciar"><h3>Dados do imóvel</h3>
         <div class="s2"><select name="fin" aria-label="Quero"><option>Vender</option><option>Alugar</option></select><select name="tipo" aria-label="Tipo">${TIPOS.map(t => `<option>${t}</option>`).join("")}</select></div>
         <input name="bairro" list="sbairros" placeholder="Bairro" aria-label="Bairro"><datalist id="sbairros">${bairros.map(b => `<option value="${esc(b)}">`).join("")}</datalist>
         <input name="valor" inputmode="numeric" placeholder="Valor pretendido (opcional)" aria-label="Valor pretendido">
         <input name="nome" placeholder="Seu nome" required aria-label="Seu nome"><input name="telefone" placeholder="Telefone / WhatsApp" required inputmode="tel" aria-label="Telefone">
         <textarea name="msg" rows="3" placeholder="Conte mais: área, quartos, documentação…" aria-label="Mais informações"></textarea>
-        ${consent()}<button class="sbtn sbtn-gold" type="submit">Quero anunciar</button>${flash("anunciar")}</form></div>`;
+        ${consent()}<button class="sbtn sbtn-gold" type="submit">${esc(tx("anun.botao"))}</button>${flash("anunciar")}</form></div>`;
   }
   function sobre(){
     const c = cfg();
-    return `<div class="swrap sbread"><a href="#vitrine">Início</a> › Sobre</div><div class="swrap spage one"><div><h1>${esc(c.nome || "M2 Imóveis e Loteamentos")}</h1>
-      <p>Imobiliária de Parnaíba especializada em venda e locação de imóveis residenciais e em loteamentos da região. CRECI ${esc(c.creci || "0476-PJ")}.</p>
-      ${S.internal ? `<p class="snote">Texto provisório. Peça à M2 a história da empresa, os anos de mercado e a equipe para completar esta página.</p>` : ""}
-      <p><a class="sbtn sbtn-gold" href="#vitrine-contato">Fale com a gente</a></p></div></div>`;
+    return `<div class="swrap sbread"><a href="#vitrine">Início</a> › Sobre</div><div class="swrap spage one"><div><h1>${esc(tx("sobre.titulo"))}</h1>
+      ${paras(tx("sobre.texto"))}
+      ${S.internal && !txMudou("sobre.texto") ? `<p class="snote">Texto provisório. ${isAdmin() ? `Escreva a história da empresa, os anos de mercado e a equipe em <a href="#edicoes">Edições</a>.` : "Peça ao administrador para completar esta página em Edições."}</p>` : ""}
+      <p><a class="sbtn sbtn-gold" href="#vitrine-contato">${esc(tx("sobre.botao"))}</a></p></div></div>`;
   }
   function contato(){
     const c = cfg();
-    return `<div class="swrap sbread"><a href="#vitrine">Início</a> › Contato</div><div class="swrap spage"><div><h1>Fale com a M2</h1>
-      <p>Mande sua mensagem pelo formulário${c.whatsapp ? " ou chame no WhatsApp" : ""}.</p>
+    return `<div class="swrap sbread"><a href="#vitrine">Início</a> › Contato</div><div class="swrap spage"><div><h1>${esc(tx("cont.titulo"))}</h1>
+      ${paras(tx("cont.texto"))}
       <dl class="smini">${c.whatsapp ? `<div><dt>WhatsApp</dt><dd class="mono">${esc(c.whatsapp)}</dd></div>` : ""}${c.telefone ? `<div><dt>Telefone</dt><dd class="mono">${esc(c.telefone)}</dd></div>` : ""}${c.email ? `<div><dt>E-mail</dt><dd>${esc(c.email)}</dd></div>` : ""}${c.endereco ? `<div><dt>Endereço</dt><dd>${esc(c.endereco)}</dd></div>` : ""}</dl></div>
       <form class="sbox sform" data-sform="contato"><h3>Envie sua mensagem</h3><input name="nome" placeholder="Seu nome" required aria-label="Seu nome"><input name="telefone" placeholder="Telefone / WhatsApp" required inputmode="tel" aria-label="Telefone"><input name="email" type="email" placeholder="E-mail (opcional)" aria-label="E-mail"><textarea name="msg" rows="4" placeholder="Como podemos ajudar?" aria-label="Mensagem"></textarea>${consent()}<button class="sbtn sbtn-gold" type="submit">Enviar</button>${flash("contato")}</form></div>`;
   }
@@ -1871,12 +1872,13 @@ const isAdmin = () => S.sess && S.sess.perfil === "Administrador";
 const PNAV = [
   {g:"Atendimento", items:[["painel","Início"],["mensagens","Mensagens"],["interessados","Leads"],["fichas","Fichas"]]},
   {g:"Imóveis", items:[["captacao","Captação"],["imoveis","Imóveis"],["proprietarios","Proprietários"],["locacoes","Locações"],["negocios","Visitas e negócios"]]},
-  {g:"Administração", items:[["cadastro","Cadastro interno"],["manutencao","Manutenção"]]},
+  {g:"Administração", items:[["cadastro","Cadastro interno"],["manutencao","Manutenção"],["edicoes","Edições"]]},
 ];
 const PICON = {
   painel:ICON.painel, imoveis:ICON.imoveis, proprietarios:ICON.proprietarios, locacoes:ICON.locacoes, interessados:ICON.interessados, negocios:ICON.negocios,
   mensagens:'<path d="M3 5h18v12H8l-5 4z"/>', fichas:'<path d="M6 2h9l5 5v15H6zM14 3v5h5M9 12h8v2H9zm0 4h8v2H9z"/>',
   captacao:'<path d="M12 3l9 7h-3v10h-5v-6h-2v6H6V10H3zM16 3h3v4"/>', manutencao:'<path d="M22.7 19l-9.1-9.1c.9-2.3.4-5-1.5-6.9-2-2-5-2.4-7.4-1.3L9 6 6 9 1.6 4.7C.4 7.1.9 10.1 2.9 12.1c1.9 1.9 4.6 2.4 6.9 1.5l9.1 9.1c.4.4 1 .4 1.4 0l2.3-2.3c.5-.4.5-1.1.1-1.4z"/>', cadastro:'<path d="M12 2l8 3v6c0 5-3.4 9.4-8 11-4.6-1.6-8-6-8-11V5zm0 6a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zm-4 9c.6-2 2.2-3 4-3s3.4 1 4 3z"/>',
+  edicoes:'<path d="M4 4h10v2H4zM4 8h10v2H4zM4 12h6v2H4zM20.7 9.3l-1-1a1 1 0 0 0-1.4 0L11 15.6V18h2.4l7.3-7.3a1 1 0 0 0 0-1.4zM4 20h16v2H4z"/>',
   site:'<path d="M3 4h18l-1 5H4zM4 10h16v10H4zM9 14h6v6H9z"/>', sair:'<path d="M10 3h9v18h-9v-2h7V5h-7zM8 7l1.4 1.4L6.8 11H15v2H6.8l2.6 2.6L8 17l-5-5z"/>',
 };
 function badgeFor(id){
@@ -1993,6 +1995,92 @@ function vCadastro(){
   </tbody></table></div>`}
   <p class="note" style="margin-top:16px">${window.M2_AUTH ? "O login e as senhas ficam no sistema de autenticação do Google (Firebase). Para trocar a senha, cada pessoa usa “Esqueci minha senha” na tela de login." : "As senhas ficam guardadas de forma embaralhada (hash). Nesta versão de demonstração o login protege as telas, mas não substitui a segurança de um servidor próprio."}</p>`;
 }
+
+/* ---------- Edições: textos do site (config/textos) ---------- */
+const TXT = [
+  {g:"Página inicial", k:"home.titulo", l:"Título grande (em cima da busca)", v:c => c.slogan || "Encontre seu imóvel em Parnaíba com a M2"},
+  {g:"Página inicial", k:"home.sub", l:"Frase embaixo do título", v:"Casas, apartamentos e lotes para comprar ou alugar, com atendimento de quem conhece a cidade.", m:1},
+  {g:"Página inicial", k:"home.destaques", l:"Título da seção de imóveis", v:"Imóveis em destaque"},
+  {g:"Página inicial", k:"home.porque", l:"Título da seção de vantagens", v:"Por que anunciar e comprar com a M2"},
+  {g:"Página inicial", k:"home.d1t", l:"Vantagem 1 · título", v:"Conhecemos Parnaíba"},
+  {g:"Página inicial", k:"home.d1x", l:"Vantagem 1 · texto", v:"Bairros, loteamentos e preços da região: indicamos o imóvel certo para o seu momento.", m:1},
+  {g:"Página inicial", k:"home.d2t", l:"Vantagem 2 · título", v:"Visita no seu horário"},
+  {g:"Página inicial", k:"home.d2x", l:"Vantagem 2 · texto", v:"Agende pelo site e um corretor confirma com você antes da visita.", m:1},
+  {g:"Página inicial", k:"home.d3t", l:"Vantagem 3 · título", v:"Documentação sem dor de cabeça"},
+  {g:"Página inicial", k:"home.d3x", l:"Vantagem 3 · texto", v:"Acompanhamos contrato, escritura e financiamento do começo ao fim.", m:1},
+  {g:"Página inicial", k:"home.d4t", l:"Vantagem 4 · título", v:"Loteamentos"},
+  {g:"Página inicial", k:"home.d4x", l:"Vantagem 4 · texto", v:"Lotes em loteamentos da região, com informações de quadra e lote.", m:1},
+  {g:"Página inicial", k:"home.ctat", l:"Chamada para proprietários · título", v:"Quer vender ou alugar seu imóvel?"},
+  {g:"Página inicial", k:"home.ctax", l:"Chamada para proprietários · texto", v:"Anuncie com a M2 e receba uma avaliação gratuita do valor de mercado.", m:1},
+  {g:"Página inicial", k:"home.ctab", l:"Chamada para proprietários · botão", v:"Anunciar meu imóvel"},
+  {g:"Página inicial", k:"home.bairros", l:"Título da seção de bairros", v:"Bairros em destaque"},
+  {g:"Página inicial", k:"home.mais", l:"Título da seção de links", v:"Mais opções"},
+  {g:"Sobre", k:"sobre.titulo", l:"Título", v:c => c.nome || "M2 Imóveis e Loteamentos"},
+  {g:"Sobre", k:"sobre.texto", l:"Texto da página (deixe uma linha em branco para começar outro parágrafo)", v:c => `Imobiliária de Parnaíba especializada em venda e locação de imóveis residenciais e em loteamentos da região. CRECI ${c.creci || "0476-PJ"}.`, m:2},
+  {g:"Sobre", k:"sobre.botao", l:"Botão", v:"Fale com a gente"},
+  {g:"Anunciar imóvel", k:"anun.titulo", l:"Título", v:"Anuncie seu imóvel com a M2"},
+  {g:"Anunciar imóvel", k:"anun.texto", l:"Texto", v:"Conte um pouco sobre o imóvel. Um corretor entra em contato para combinar a avaliação gratuita e as fotos.", m:1},
+  {g:"Anunciar imóvel", k:"anun.p1t", l:"Passo 1 · título", v:"Você envia os dados"},
+  {g:"Anunciar imóvel", k:"anun.p1x", l:"Passo 1 · texto", v:"Leva menos de dois minutos."},
+  {g:"Anunciar imóvel", k:"anun.p2t", l:"Passo 2 · título", v:"Avaliação gratuita"},
+  {g:"Anunciar imóvel", k:"anun.p2x", l:"Passo 2 · texto", v:"Visitamos o imóvel e sugerimos o valor de mercado."},
+  {g:"Anunciar imóvel", k:"anun.p3t", l:"Passo 3 · título", v:"Divulgação"},
+  {g:"Anunciar imóvel", k:"anun.p3x", l:"Passo 3 · texto", v:"Fotos profissionais e anúncio no nosso site e nos portais."},
+  {g:"Anunciar imóvel", k:"anun.botao", l:"Botão do formulário", v:"Quero anunciar"},
+  {g:"Contato", k:"cont.titulo", l:"Título", v:"Fale com a M2"},
+  {g:"Contato", k:"cont.texto", l:"Texto", v:c => `Mande sua mensagem pelo formulário${c.whatsapp ? " ou chame no WhatsApp" : ""}.`, m:1},
+  {g:"Rodapé", k:"rod.texto", l:"Frase embaixo da logo", v:"Venda e locação de casas, apartamentos e lotes em Parnaíba e região.", m:1},
+];
+const TXT_BY = Object.fromEntries(TXT.map(t => [t.k, t]));
+let ED = null; // rascunho das Edições (ainda não salvo)
+const txPadrao = k => { const t = TXT_BY[k]; return !t ? "" : typeof t.v === "function" ? t.v(S.cfg || {}) : t.v; };
+const txSalvo = k => { const v = (S.textos || {})[k]; return typeof v === "string" && v.trim() ? v : ""; };
+const txMudou = k => !!txSalvo(k);
+function tx(k){
+  if (ED && S.sess && isAdmin() && ED[k] != null && String(ED[k]).trim()) return ED[k];
+  return txSalvo(k) || txPadrao(k);
+}
+const paras = s => String(s || "").split(/\n\s*\n/).map(p => p.trim()).filter(Boolean).map(p => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("");
+const edVal = k => ED && ED[k] != null ? ED[k] : (txSalvo(k) || txPadrao(k));
+function vEdicoes(){
+  if (!isAdmin()) return `<div class="emptybox"><b>Só administradores</b><span>Peça a um administrador para mudar os textos do site.</span></div>`;
+  const grupos = [...new Set(TXT.map(t => t.g))];
+  const campo = t => { const v = edVal(t.k), pad = txPadrao(t.k), dif = v.trim() !== pad.trim(), id = "tx_" + t.k.replace(".", "_");
+    return `<div class="f" style="grid-column:1/-1"><label for="${id}">${esc(t.l)}${dif ? ` <span class="pill info" title="Diferente do texto original">alterado</span>` : ""}</label>
+      <textarea id="${id}" data-tx="${t.k}" rows="${t.m === 2 ? 8 : t.m ? 3 : 1}" spellcheck="true" lang="pt-BR" autocorrect="on" autocapitalize="sentences" style="resize:vertical${t.m ? "" : ";min-height:42px"}">${esc(v)}</textarea>
+      ${dif ? `<small style="color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>Original: “${esc(pad.length > 120 ? pad.slice(0, 120) + "…" : pad)}”</span><button type="button" class="linkbtn" data-txorig="${t.k}">↺ Voltar ao original</button></small>` : ""}</div>`; };
+  return `<div class="head"><div><h1>Edições</h1><p>Textos que aparecem no site para os clientes</p></div><a class="btn" href="#vitrine">🌐 Ver site</a></div>
+  <div class="note" style="margin:0 0 16px"><span>✍️ <b>Corretor:</b> palavras com erro ficam <span style="text-decoration:underline wavy red">sublinhadas em vermelho</span>. No computador, clique com o <b>botão direito</b> na palavra para ver a correção; no celular, toque na palavra. Se nada ficar sublinhado, ative a verificação ortográfica em português no navegador (Chrome: Configurações › Idiomas › Verificação ortográfica).</span></div>
+  ${ED ? `<div class="note" style="margin:0 0 16px;background:var(--warn-bg);border-color:var(--warn)"><span><b>Alterações ainda não publicadas.</b> Os clientes continuam vendo os textos antigos até você clicar em Salvar. Você pode conferir antes em “Ver site”.</span></div>` : ""}
+  ${grupos.map(g => `<section class="panel" style="margin-bottom:16px"><h2>${esc(g)}</h2><div class="form">${TXT.filter(t => t.g === g).map(campo).join("")}</div></section>`).join("")}
+  <div class="panel" style="position:sticky;bottom:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;z-index:5;box-shadow:0 4px 16px rgba(0,0,0,.12)">
+    <span id="edSt" style="color:var(--muted)">${ED ? "Há alterações sem salvar." : "Nenhuma alteração pendente."}</span><span style="flex:1"></span>
+    ${ED ? `<button class="btn" data-ed="descarta">Descartar alterações</button>` : ""}<button class="btn pri" data-ed="salva" ${ED ? "" : "disabled"}>💾 Salvar e publicar</button></div>`;
+}
+document.addEventListener("input", e => {
+  const t = e.target.closest && e.target.closest("[data-tx]"); if (!t) return;
+  const novo = !ED; ED = ED || {}; ED[t.dataset.tx] = t.value;
+  if (novo) render(); else { const st = $("#edSt"); if (st) st.textContent = "Há alterações sem salvar."; }
+});
+document.addEventListener("click", async e => {
+  const o = e.target.closest("[data-txorig]");
+  if (o) { ED = ED || {}; ED[o.dataset.txorig] = txPadrao(o.dataset.txorig); render(); return toast("Texto original de volta. Clique em Salvar para publicar."); }
+  const b = e.target.closest("[data-ed]"); if (!b) return;
+  if (!isAdmin()) return toast("Só o administrador pode mudar os textos do site.");
+  if (b.dataset.ed === "descarta") { if (!confirm("Descartar as alterações nos textos? O site continua como está.")) return; ED = null; render(); return toast("Alterações descartadas"); }
+  if (b.dataset.ed === "salva") {
+    if (!ED) return toast("Nada para salvar.");
+    const vazios = Object.entries(ED).filter(([k, v]) => !String(v).trim()).map(([k]) => TXT_BY[k] ? `${TXT_BY[k].g} › ${TXT_BY[k].l}` : k);
+    if (vazios.length && !confirm(`Estes campos estão vazios e vão voltar ao texto original:\n\n• ${vazios.join("\n• ")}\n\nContinuar?`)) return;
+    const data = {};
+    TXT.forEach(t => { const v = String(edVal(t.k)).trim(); if (v && v !== txPadrao(t.k).trim()) data[t.k] = v; });
+    data.atualizadoEm = new Date().toISOString(); data.atualizadoPor = (S.sess && S.sess.nome) || "";
+    b.disabled = true; const st = $("#edSt"); if (st) st.textContent = "Salvando…";
+    try { await S.db.doc("config/textos").set(data); S.textos = data; ED = null; render(); toast("Textos salvos e publicados no site"); }
+    catch (err) { b.disabled = false; if (st) st.textContent = "Não foi possível salvar. Confira a internet e tente de novo."; toast("Não foi possível salvar os textos"); }
+  }
+});
+window.addEventListener("beforeunload", e => { if (ED) { e.preventDefault(); e.returnValue = ""; } });
 
 /* ---------- Manutenção: logo, foto de fundo e cores (config/aparencia) ---------- */
 const APAR_PADRAO = {cor1:"#1d3b85", cor2:"#c59019", cor3:"#0f1c3f"};
@@ -2513,7 +2601,7 @@ function fieldHtml(f, d){
           <small class="qerr" role="alert" hidden></small>
           <div class="r"><button type="button" class="btn sm" data-qcancel="${f.k}">Cancelar</button><button type="button" class="btn pri sm" data-qsave="${f.k}">Cadastrar ${one}</button></div>
           <small style="color:var(--muted)">Os outros dados (e-mail, repasse) podem ser completados depois na tela Proprietários.</small></div></div>`; }
-    case "area": return `<div class="${cls}">${lab}<textarea id="${id}" name="${f.k}" ${req}>${esc(v)}</textarea></div>`;
+    case "area": return `<div class="${cls}">${lab}<textarea id="${id}" name="${f.k}" spellcheck="true" lang="pt-BR" ${req}>${esc(v)}</textarea></div>`;
     case "password": {
       const eye = `<button type="button" class="pweye" data-pw aria-label="Mostrar senha" title="Mostrar senha"><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true"><path d="M12 5c5 0 9 4.5 10 7-1 2.5-5 7-10 7S3 14.5 2 12c1-2.5 5-7 10-7zm0 3a4 4 0 1 0 0 8 4 4 0 0 0 0-8zm0 2a2 2 0 1 1 0 4 2 2 0 0 1 0-4z"/></svg></button>`;
       const pwIn = (iid, nm, lbl, ph, ac) => `<div class="${cls}"><label for="${iid}">${lbl}</label><span class="pw"><input type="password" id="${iid}" name="${nm}" autocomplete="${ac||"new-password"}" placeholder="${ph}">${eye}</span></div>`;
@@ -2896,6 +2984,7 @@ render();
   if (!pending.size) S.ready = true;
   db.doc("config/logotema").onSnapshot(s => { S.ltema = s.exists ? (s.data() || {}) : {}; applyApar(); schedule(); }, () => {});
   db.doc("config/aparencia").onSnapshot(s => { S.apar = s.exists ? (s.data() || {}) : {}; applyApar(); schedule(); }, () => {});
+  db.doc("config/textos").onSnapshot(s => { S.textos = s.exists ? (s.data() || {}) : {}; schedule(); }, () => {});
   db.doc("config/empresa").onSnapshot(s => { S.cfg = s.exists ? s.data() : {}; if (S.cfg.nome) $("#brandName").textContent = S.cfg.nome; schedule(); }, () => {});
   render();
 })();
