@@ -809,7 +809,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
-const M2_VERSAO = "1.27 · 20/11/2026";
+const M2_VERSAO = "1.28 · 20/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
@@ -2083,7 +2083,9 @@ function vEdicoes(){
       <textarea id="${id}" data-tx="${t.k}" rows="${t.m === 2 ? 8 : t.m ? 3 : 1}" spellcheck="true" lang="pt-BR" autocorrect="on" autocapitalize="sentences" style="resize:vertical${t.m ? "" : ";min-height:42px"}">${esc(v)}</textarea>
       ${dif ? `<small style="color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>Original: “${esc(pad.length > 120 ? pad.slice(0, 120) + "…" : pad)}”</span><button type="button" class="linkbtn" data-txorig="${t.k}">↺ Voltar ao original</button></small>` : ""}</div>`; };
   return `<div class="head"><div><h1>Edições</h1><p>Textos que aparecem no site para os clientes</p></div><a class="btn" href="#vitrine">🌐 Ver site</a></div>
-  <div class="note" style="margin:0 0 16px"><span>✍️ <b>Corretor:</b> palavras com erro ficam <span style="text-decoration:underline wavy red">sublinhadas em vermelho</span>. No computador, clique com o <b>botão direito</b> na palavra para ver a correção; no celular, toque na palavra. Se nada ficar sublinhado, ative a verificação ortográfica em português no navegador (Chrome: Configurações › Idiomas › Verificação ortográfica).</span></div>
+  <div class="note" style="margin:0 0 16px"><span>✍️ <b>Corretor:</b> palavras com erro ficam <span style="text-decoration:underline wavy red">sublinhadas em vermelho</span>. No computador, clique com o <b>botão direito</b> na palavra para ver a correção; no celular, toque na palavra. Se nada ficar sublinhado, ative a verificação ortográfica em português no navegador (Chrome: Configurações › Idiomas › Verificação ortográfica).</span>
+    <div style="flex:1 1 100%;display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button type="button" class="btn sm pri" data-edver ${EDV && EDV.st === "carregando" ? "disabled" : ""}>🔎 Verificar a ortografia de todos os textos</button><small style="color:var(--muted)">Só mostra os possíveis erros e sugere a correção. Nada é alterado.</small></div></div>
+  <div id="edVer">${edVerHtml()}</div>
   ${ED ? `<div class="note" style="margin:0 0 16px;background:var(--warn-bg);border-color:var(--warn)"><span><b>Alterações ainda não publicadas.</b> Os clientes continuam vendo os textos antigos até você clicar em Salvar. Você pode conferir antes em “Ver site”.</span></div>` : ""}
   ${grupos.map(g => `<section class="panel" style="margin-bottom:16px"><h2>${esc(g)}</h2><div class="form">${TXT.filter(t => t.g === g).map(campo).join("")}</div></section>`).join("")}
   <div class="panel" style="position:sticky;bottom:8px;display:flex;gap:8px;flex-wrap:wrap;align-items:center;z-index:5;box-shadow:0 4px 16px rgba(0,0,0,.12)">
@@ -2113,6 +2115,62 @@ document.addEventListener("click", async e => {
     catch (err) { b.disabled = false; if (st) st.textContent = "Não foi possível salvar. Confira a internet e tente de novo."; toast("Não foi possível salvar os textos"); }
   }
 });
+/* Verificação de ortografia de todos os textos (Gemini): só mostra e sugere, não altera nada */
+let EDV = null; // {st:"carregando"|"ok"|"erro", itens:[{k, trecho, sugestao, motivo}], msg, em}
+const txCampo = k => $("#tx_" + k.replace(".", "_"));
+function edVerHtml(){
+  if (!EDV) return "";
+  const caixa = (cor, html) => `<section class="panel" style="margin-bottom:16px;border-left:4px solid ${cor}">${html}</section>`;
+  if (EDV.st === "carregando") return caixa("var(--info)", `<b>🔎 Verificando a ortografia de ${TXT.length} textos…</b><p style="margin:6px 0 0;color:var(--muted)">Pode levar até 1 minuto.</p>`);
+  if (EDV.st === "erro") return caixa("var(--bad)", `<b>Não foi possível verificar agora.</b><p style="margin:6px 0 0">${esc(EDV.msg)}</p><button type="button" class="linkbtn" data-edverfecha style="margin-top:8px">Fechar</button>`);
+  const atual = it => String(edVal(it.k)).includes(it.trecho);
+  const pend = EDV.itens.filter(atual).length;
+  const topo = `<div style="display:flex;gap:8px;align-items:baseline;justify-content:space-between;flex-wrap:wrap"><h2 style="margin:0">${EDV.itens.length ? `🔎 ${EDV.itens.length === 1 ? "1 possível erro encontrado" : EDV.itens.length + " possíveis erros encontrados"}` : "✅ Nenhum erro de ortografia encontrado"}</h2><button type="button" class="linkbtn" data-edverfecha>Fechar</button></div>
+    <p style="margin:6px 0 10px;color:var(--muted)">Verificado às ${esc(EDV.em)}. ${EDV.itens.length ? "São só sugestões: nada foi alterado. Para corrigir, clique em “Ir ao campo”, mude o texto e depois em Salvar." + (EDV.itens.length && !pend ? " Todos já foram corrigidos." : "") : "A verificação é automática e pode deixar passar algum erro."}</p>`;
+  const linha = (it, i) => { const t = TXT_BY[it.k], ok = !atual(it);
+    return `<li style="padding:10px 0;border-top:1px solid var(--line);${ok ? "opacity:.6" : ""}">
+      <div style="font-size:13px;color:var(--muted)">${esc(t.g)} › ${esc(t.l)}${ok ? ` <span class="pill ok">corrigido</span>` : ""}</div>
+      <div style="margin:4px 0"><span style="text-decoration:line-through;color:var(--bad)">${esc(it.trecho)}</span> → <b style="color:var(--ok)">${esc(it.sugestao)}</b></div>
+      ${it.motivo ? `<div style="font-size:14px;color:var(--muted)">${esc(it.motivo)}</div>` : ""}
+      ${ok ? "" : `<div style="display:flex;gap:14px;flex-wrap:wrap;margin-top:4px"><button type="button" class="linkbtn" data-edvervai="${i}">✏️ Ir ao campo</button><button type="button" class="linkbtn" data-txver="${it.k}">👁 Ver no site</button></div>`}</li>`; };
+  return caixa(EDV.itens.length ? "var(--warn)" : "var(--ok)", topo + (EDV.itens.length ? `<ul style="list-style:none;margin:0;padding:0">${EDV.itens.map(linha).join("")}</ul>` : ""));
+}
+const edVerMostra = () => { const c = $("#edVer"); if (c) c.innerHTML = edVerHtml(); const b = $("[data-edver]"); if (b) b.disabled = !!(EDV && EDV.st === "carregando"); };
+async function edVerifica(){
+  if (!isAdmin()) return toast("Só o administrador pode usar a verificação.");
+  if (!window.M2_AI) { EDV = {st:"erro", msg:"A verificação usa a inteligência artificial do Google e funciona só no sistema online (no site da M2). Enquanto isso, use o corretor do navegador: as palavras com erro ficam sublinhadas em vermelho."}; return edVerMostra(); }
+  EDV = {st:"carregando"}; edVerMostra();
+  const textos = TXT.map(t => ({k: t.k, texto: String(edVal(t.k))})).filter(t => t.texto.trim());
+  const prompt = `Você é revisor de textos em português do Brasil. Abaixo estão os textos do site de uma imobiliária de Parnaíba-PI (M2 Imóveis e Loteamentos).
+Encontre APENAS erros de ortografia, acentuação, crase, concordância e pontuação claramente errada. Não sugira mudanças de estilo, de sentido ou de preferência.
+Ignore nomes próprios e siglas (M2, CRECI, Parnaíba, nomes de bairros, WhatsApp).
+Responda só um JSON: {"erros": [{"k": "chave do texto", "trecho": "o trecho errado copiado exatamente como está no texto (uma palavra ou poucas)", "sugestao": "o trecho corrigido", "motivo": "explicação curta e simples em português"}]}. Se não houver erros, responda {"erros": []}.
+Textos: ${JSON.stringify(textos)}`;
+  try {
+    const r = await window.M2_AI.read(prompt, []);
+    const j = JSON.parse(String(r).replace(/^\s*```(json)?|```\s*$/g, "").trim());
+    const vistos = new Set();
+    const itens = (Array.isArray(j.erros) ? j.erros : []).map(x => ({k: String(x.k || ""), trecho: String(x.trecho || "").trim(), sugestao: String(x.sugestao || "").trim(), motivo: String(x.motivo || "").trim()}))
+      .filter(x => TXT_BY[x.k] && x.trecho && x.sugestao && x.trecho !== x.sugestao && String(edVal(x.k)).includes(x.trecho))
+      .filter(x => { const c = x.k + "|" + x.trecho; if (vistos.has(c)) return false; vistos.add(c); return true; })
+      .sort((a, b) => TXT.indexOf(TXT_BY[a.k]) - TXT.indexOf(TXT_BY[b.k]));
+    EDV = {st:"ok", itens, em: new Date().toLocaleTimeString("pt-BR", {hour:"2-digit", minute:"2-digit"})};
+  } catch (e) {
+    const m = String(e && e.message || "");
+    EDV = {st:"erro", msg: /limite/i.test(m) ? "O limite de uso gratuito da inteligência artificial foi atingido por agora. Tente de novo em alguns minutos." : /entre na área/i.test(m) ? "Entre na área administrativa de novo e tente outra vez." : "O serviço do Google não respondeu. Confira a internet e tente de novo em alguns minutos."};
+  }
+  if (location.hash.slice(1) === "edicoes") edVerMostra();
+}
+document.addEventListener("click", e => {
+  if (e.target.closest("[data-edver]")) return edVerifica();
+  if (e.target.closest("[data-edverfecha]")) { EDV = null; return edVerMostra(); }
+  const v = e.target.closest("[data-edvervai]"); if (!v || !EDV || !EDV.itens) return;
+  const it = EDV.itens[+v.dataset.edvervai], f = it && txCampo(it.k); if (!f) return;
+  f.scrollIntoView({block:"center", behavior:"smooth"}); f.focus();
+  const p = f.value.indexOf(it.trecho); if (p >= 0) f.setSelectionRange(p, p + it.trecho.length);
+  toast(`Sugestão: “${it.sugestao}”. O trecho está selecionado no campo.`);
+});
+document.addEventListener("input", e => { if (EDV && EDV.st === "ok" && e.target.closest && e.target.closest("[data-tx]")) edVerMostra(); });
 window.addEventListener("beforeunload", e => { if (ED) { e.preventDefault(); e.returnValue = ""; } });
 
 /* ---------- Manutenção: logo, foto de fundo e cores (config/aparencia) ---------- */
