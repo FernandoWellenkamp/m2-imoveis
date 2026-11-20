@@ -549,6 +549,10 @@ a.btn.pri{color:var(--accent-ink)}
 .smini div{display:flex;justify-content:space-between;gap:12px;border-top:1px solid var(--line);padding-top:6px}
 .smini dt{color:var(--muted)}.smini dd{margin:0;font-weight:600}
 .sform{display:grid;gap:10px}
+.txfoco{outline:3px solid #c59019!important;outline-offset:4px;border-radius:4px;background:rgba(255,214,90,.35)!important;animation:txpisca 1s ease-in-out 3}
+@keyframes txpisca{50%{outline-color:transparent}}
+.txbar{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:9999;display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:center;max-width:calc(100% - 32px);background:#0f1c3f;color:#fff;padding:10px 14px;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,.3);font-size:14px}
+.txbar b{color:#ffd65a}
 .sform .sconsent{display:flex;gap:8px;align-items:flex-start;font-size:13px;line-height:1.45;color:var(--muted);cursor:pointer}
 .sform .sconsent input{width:18px;height:18px;flex:none;margin:1px 0 0;padding:0;accent-color:var(--accent)}
 .sform .sconsent a{color:var(--accent);font-weight:600}
@@ -805,7 +809,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
-const M2_VERSAO = "1.26 · 19/11/2026";
+const M2_VERSAO = "1.27 · 20/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
@@ -1133,6 +1137,7 @@ function render(){
   el.innerHTML = v === "vitrine" ? SITE.view() : v === "acesso" ? SITE.page(vAcesso()) : portalLayout(v, fn());
   el.querySelectorAll(".tbl table").forEach(t => { const hs = [...t.querySelectorAll("th")].map(x => x.textContent); t.querySelectorAll("tbody tr").forEach(r => [...r.children].forEach((td, k) => td.dataset.label = hs[k] || "")); });
   if (txk) { const t = el.querySelector(`[data-tx="${txk}"]`); if (t) { t.focus(); try { t.setSelectionRange(sel[0], sel[1]); t.scrollTop = sel[2]; } catch (e) {} } }
+  txMarca(v);
 }
 window.addEventListener("hashchange", () => { render(); window.scrollTo(0,0); });
 
@@ -2042,11 +2047,39 @@ function tx(k){
 }
 const paras = s => String(s || "").split(/\n\s*\n/).map(p => p.trim()).filter(Boolean).map(p => `<p>${esc(p).replace(/\n/g, "<br>")}</p>`).join("");
 const edVal = k => ED && ED[k] != null ? ED[k] : (txSalvo(k) || txPadrao(k));
+/* "Ver no site": abre a página onde o texto aparece e destaca o trecho, com uma faixa para voltar às Edições */
+const TXT_PAG = {"Página inicial":"vitrine", "Sobre":"vitrine-sobre", "Anunciar imóvel":"vitrine-anunciar", "Contato":"vitrine-contato", "Rodapé":"vitrine"};
+let TXF = null;      // {k, ok} texto que está sendo mostrado no site
+let TXV = null;      // campo para reabrir ao voltar às Edições
+function txAcha(k){
+  const t = TXT_BY[k]; if (!t) return null;
+  const nrm = s => String(s || "").replace(/\s+/g, " ").trim().toLowerCase();
+  const alvo = nrm(String(tx(k)).split(/\n\s*\n/)[0]).slice(0, 60); if (!alvo) return null;
+  const raiz = $(t.g === "Rodapé" ? ".sfoot" : ".smainc") || document.body;
+  let best = null, bl = 1e9;
+  raiz.querySelectorAll("h1,h2,h3,h4,p,li,b,span,a,button,small,div,label,strong").forEach(el => {
+    const s = nrm(el.textContent); if (s.includes(alvo) && s.length < bl) { best = el; bl = s.length; } });
+  return best;
+}
+function txMarca(v){
+  document.querySelectorAll(".txfoco").forEach(x => x.classList.remove("txfoco"));
+  const bar = $("#txbar");
+  if (!TXF || v !== "vitrine") { if (bar) bar.remove(); if (v !== "vitrine") TXF = null; return; }
+  const t = TXT_BY[TXF.k], el = txAcha(TXF.k);
+  if (el) { el.classList.add("txfoco"); if (!TXF.ok) { TXF.ok = 1; setTimeout(() => el.scrollIntoView({block:"center", behavior:"smooth"}), 60); } }
+  const html = `<span>👁 ${el ? "Destacado em amarelo:" : "Não achei este texto nesta página:"} <b>${esc(t.g)} › ${esc(t.l)}</b></span><button type="button" class="btn sm pri" data-txvolta>← Voltar para Edições</button>`;
+  if (bar) bar.innerHTML = html; else document.body.insertAdjacentHTML("beforeend", `<div id="txbar" class="txbar" role="status">${html}</div>`);
+}
+document.addEventListener("click", e => {
+  const vb = e.target.closest("[data-txver]");
+  if (vb) { const k = vb.dataset.txver; TXF = {k}; TXV = k; const h = TXT_PAG[TXT_BY[k].g] || "vitrine"; if (location.hash.slice(1) === h) render(); else location.hash = h; return; }
+  if (e.target.closest("[data-txvolta]")) { TXF = null; location.hash = "edicoes"; setTimeout(() => { const f = TXV && $("#tx_" + TXV.replace(".", "_")); if (f) { f.scrollIntoView({block:"center"}); f.focus(); } }, 80); }
+});
 function vEdicoes(){
   if (!isAdmin()) return `<div class="emptybox"><b>Só administradores</b><span>Peça a um administrador para mudar os textos do site.</span></div>`;
   const grupos = [...new Set(TXT.map(t => t.g))];
   const campo = t => { const v = edVal(t.k), pad = txPadrao(t.k), dif = v.trim() !== pad.trim(), id = "tx_" + t.k.replace(".", "_");
-    return `<div class="f" style="grid-column:1/-1"><label for="${id}">${esc(t.l)}${dif ? ` <span class="pill info" title="Diferente do texto original">alterado</span>` : ""}</label>
+    return `<div class="f" style="grid-column:1/-1"><div style="display:flex;gap:8px;align-items:baseline;justify-content:space-between;flex-wrap:wrap"><label for="${id}">${esc(t.l)}${dif ? ` <span class="pill info" title="Diferente do texto original">alterado</span>` : ""}</label><button type="button" class="linkbtn" data-txver="${t.k}" title="Abre a página do site com este texto destacado">👁 Ver no site</button></div>
       <textarea id="${id}" data-tx="${t.k}" rows="${t.m === 2 ? 8 : t.m ? 3 : 1}" spellcheck="true" lang="pt-BR" autocorrect="on" autocapitalize="sentences" style="resize:vertical${t.m ? "" : ";min-height:42px"}">${esc(v)}</textarea>
       ${dif ? `<small style="color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap"><span>Original: “${esc(pad.length > 120 ? pad.slice(0, 120) + "…" : pad)}”</span><button type="button" class="linkbtn" data-txorig="${t.k}">↺ Voltar ao original</button></small>` : ""}</div>`; };
   return `<div class="head"><div><h1>Edições</h1><p>Textos que aparecem no site para os clientes</p></div><a class="btn" href="#vitrine">🌐 Ver site</a></div>
