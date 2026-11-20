@@ -18,7 +18,7 @@
 <script type="application/ld+json">
 {"@context":"https://schema.org","@graph":[
  {"@type":"WebSite","@id":"https://m2imoveiseloteamentos.com.br/#site","url":"https://m2imoveiseloteamentos.com.br/","name":"M2 Imóveis e Loteamentos","alternateName":["M2 Imóveis","M2 Loteamentos","M2 Imobiliária","M2 Imóveis Parnaíba"],"inLanguage":"pt-BR","publisher":{"@id":"https://m2imoveiseloteamentos.com.br/#empresa"}},
- {"@type":"RealEstateAgent","@id":"https://m2imoveiseloteamentos.com.br/#empresa","name":"M2 Imóveis e Loteamentos","alternateName":["M2 Imóveis","M2 Loteamentos","M2 Imobiliária"],"description":"Imobiliária de Parnaíba-PI especializada em venda e locação de imóveis residenciais e em loteamentos da região. CRECI 0476-PJ.","url":"https://m2imoveiseloteamentos.com.br/","logo":"https://m2imoveiseloteamentos.com.br/logo.webp","image":"https://m2imoveiseloteamentos.com.br/logo.webp","email":"m2imoveispi@gmail.com","address":{"@type":"PostalAddress","addressLocality":"Parnaíba","addressRegion":"PI","addressCountry":"BR"},"areaServed":{"@type":"City","name":"Parnaíba"}}
+ {"@type":"RealEstateAgent","@id":"https://m2imoveiseloteamentos.com.br/#empresa","name":"M2 Imóveis e Loteamentos","alternateName":["M2 Imóveis","M2 Loteamentos","M2 Imobiliária"],"description":"Imobiliária de Parnaíba-PI especializada em venda e locação de imóveis residenciais e em loteamentos da região. CRECI 0476-PJ.","url":"https://m2imoveiseloteamentos.com.br/","logo":"https://m2imoveiseloteamentos.com.br/logo.webp","image":"https://m2imoveiseloteamentos.com.br/logo.webp","email":"m2imoveispi@gmail.com","address":{"@type":"PostalAddress","streetAddress":"Av. Francisco Borges dos Santos, 1935 - Frei Higino","addressLocality":"Parnaíba","addressRegion":"PI","addressCountry":"BR"},"areaServed":{"@type":"City","name":"Parnaíba"},"sameAs":["https://www.instagram.com/m2loteamentos/","https://www.instagram.com/imoveis_m2/"]}
 ]}
 </script>
 </head><body>
@@ -824,7 +824,7 @@ nav.bnav{display:none}
 <script>
 (() => {
 const $ = (s, r = document) => r.querySelector(s);
-const M2_VERSAO = "1.29 · 20/11/2026";
+const M2_VERSAO = "1.30 · 20/11/2026";
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const BRL = new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL", maximumFractionDigits:0});
 const money = v => (v === "" || v == null || isNaN(+v)) ? "—" : BRL.format(+v);
